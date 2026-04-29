@@ -91,9 +91,9 @@ The workflow now includes practical decision rules so Hermes can operate more co
 The repository scripts are designed to mirror the workflow rules in `SKILL.md`:
 
 - `hcw_dispatch.py`
-  - Validates brief structure, auto-detects mini versus standard tier when needed, and emits prompts that match the current dispatch template.
+  - Validates brief structure, auto-detects mini versus standard tier when needed, and emits prompts that match the current dispatch template. Also computes a weighted chain-selection score and lightweight decomposition hints so Hermes can make routing decisions before dispatch.
 - `hcw_verify.py`
-  - Records structured verification events, supports command-based evidence, optional diff-scope enforcement, and secret scanning on diffs.
+  - Records structured verification events, supports command-based evidence, optional diff-scope enforcement, and secret scanning on diffs. Verification levels (shallow, standard, deep) control output detail, and expect-pattern matching can assert specific patterns in command output.
 - `hcw_session.py`
   - Maintains session artifacts under `.hcw/sessions/...` for plans, verification output, and event history.
 - `hcw_summarize.py`

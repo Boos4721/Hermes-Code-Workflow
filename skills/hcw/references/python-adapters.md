@@ -31,6 +31,8 @@ Key features:
 - **Brief validation**: rejects missing required fields and unknown modes before launching the worker.
 - **Mode-aware permissions**: Claude Code gets `--permission-mode plan` for analyze/review and `--permission-mode acceptEdits` for implement/test/debug.
 - **Full prompt sections**: Goal, Environment Context, Relevant Files, Constraints, Acceptance Checks, Required Output, and When Stuck (standard tier only).
+- **Chain recommendation**: computes a weighted score across risk, scope, test leverage, and parallelism dimensions, then recommends a workflow chain (quick, plan-execute, test-first-development, multi-worker, subagent-driven). The score and dimensions are included in both dry-run and normal output.
+- **Decomposition hints**: analyzes file count, acceptance check count, and language diversity to suggest whether the brief should be decomposed into sub-tasks before dispatch.
 
 ```text
 usage: hcw_dispatch.py [-h] [--dry-run] [--timeout TIMEOUT]
@@ -46,6 +48,36 @@ optional arguments:
                         brief tier (default: auto)
 ```
 
+#### Chain recommendation output
+
+Both dry-run and normal dispatch output include a `chain_recommendation` object:
+
+```json
+{
+  "chain_recommendation": {
+    "score": 1.75,
+    "dimensions": {"risk": 2, "scope": 2, "test_leverage": 2, "parallelism": 1},
+    "recommended_chain": "plan-execute"
+  }
+}
+```
+
+#### Decomposition hints output
+
+Both dry-run and normal dispatch output include a `decomposition_hints` object:
+
+```json
+{
+  "decomposition_hints": {
+    "needs_decomposition": false,
+    "triggers": [],
+    "file_count": 2,
+    "acceptance_count": 3,
+    "suggested_subtasks": 0
+  }
+}
+```
+
 ### hcw_verify.py
 
 Run configured validation commands, optionally scan git diff for secrets, optionally check diff scope against an allowed file list, and emit pass or fail evidence.
@@ -56,14 +88,38 @@ Key features:
 - **Secret scanning**: `--secret-scan` runs regex patterns against `git diff HEAD` to detect API keys, tokens, passwords, and cloud credentials.
 - **Diff scope checking**: `--diff-scope FILE [FILE ...]` verifies that only allowed files were modified.
 - **Labeled runs**: `--label` tags all events for easier filtering in the session log.
+- **Verification levels**: `--level shallow|standard|deep` controls output detail. Shallow records only exit codes. Standard (the default) adds stdout and stderr tails. Deep automatically enables secret scanning and runs diff-scope checks when configured.
+- **Expect-pattern matching**: `--expect TARGET:PATTERN` (repeatable) asserts that command output contains a matching regular expression. Targets are `exit`, `stdout`, and `stderr`. If any pattern does not match, the verification fails even when the command exits zero.
 
 ```text
 usage: hcw_verify.py [-h] [--repo REPO] [--session SESSION]
                       [--timeout TIMEOUT] [--command COMMAND]
                       [--secret-scan] [--diff-scope [FILE ...]]
-                      [--label LABEL]
+                      [--label LABEL] [--level {shallow,standard,deep}]
+                      [--expect TARGET:PATTERN]
 
 at least one of --command, --secret-scan, or --diff-scope is required.
+```
+
+#### Verification levels
+
+| Level | What is recorded |
+|-------|-----------------|
+| `shallow` | Exit code only; stdout and stderr tails are empty strings. |
+| `standard` | Exit code plus the last 8 000 characters of stdout and stderr (the default). |
+| `deep` | Same as standard, plus automatic secret scanning and diff-scope checks when configured. |
+
+#### Expect-pattern examples
+
+```bash
+# Fail if stdout does not contain "0 failures"
+hcw_verify.py --command "pytest" --expect "stdout:0 failures"
+
+# Fail if exit code is not 0 (redundant, but explicit)
+hcw_verify.py --command "npm test" --expect "exit:0"
+
+# Fail if stderr contains any warning
+hcw_verify.py --command "cargo build" --expect "stderr:warning"
 ```
 
 ### hcw_session.py

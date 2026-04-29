@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Any
 
 
+_VERIFICATION_LEVELS = {"shallow", "standard", "deep"}
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -47,6 +50,46 @@ def scan_diff_for_secrets(diff_text: str) -> list[dict[str, str]]:
 
 
 # ---------------------------------------------------------------------------
+# Expect-pattern matching
+# ---------------------------------------------------------------------------
+
+_EXPECT_TARGETS = {"exit", "stdout", "stderr"}
+
+
+def check_expectations(
+    result: dict[str, Any], expectations: list[str]
+) -> list[dict[str, str]]:
+    """Check command result against expect patterns.
+
+    Each expectation has the form ``target:pattern`` where *target* is one of
+    ``exit``, ``stdout``, or ``stderr`` and *pattern* is a Python regular
+    expression.  ``exit`` patterns are matched against the stringified exit
+    code.
+
+    Returns a list of failed expectations (empty means all passed).
+    """
+    failures: list[dict[str, str]] = []
+    for expr in expectations:
+        if ":" not in expr:
+            failures.append({"expect": expr, "reason": "invalid format; expected target:pattern"})
+            continue
+        target, pattern = expr.split(":", 1)
+        target = target.strip().lower()
+        if target not in _EXPECT_TARGETS:
+            failures.append({"expect": expr, "reason": f"unknown target {target!r}; expected exit|stdout|stderr"})
+            continue
+        if target == "exit":
+            haystack = str(result.get("exit_code", ""))
+        elif target == "stdout":
+            haystack = result.get("stdout_tail", "")
+        else:
+            haystack = result.get("stderr_tail", "")
+        if not re.search(pattern, haystack):
+            failures.append({"expect": expr, "reason": f"pattern not found in {target}"})
+    return failures
+
+
+# ---------------------------------------------------------------------------
 # Git diff scope check
 # ---------------------------------------------------------------------------
 
@@ -77,7 +120,7 @@ def check_diff_scope(repo: str, allowed_files: list[str]) -> dict[str, Any]:
 # Command execution
 # ---------------------------------------------------------------------------
 
-def run_command(command: str, cwd: str | None, timeout: int) -> dict[str, Any]:
+def run_command(command: str, cwd: str | None, timeout: int, level: str = "standard") -> dict[str, Any]:
     started = now_iso()
     proc = subprocess.run(
         command,
@@ -88,16 +131,21 @@ def run_command(command: str, cwd: str | None, timeout: int) -> dict[str, Any]:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    return {
+    result: dict[str, Any] = {
         "command": command,
         "cwd": cwd,
         "started_at": started,
         "finished_at": now_iso(),
         "exit_code": proc.returncode,
         "ok": proc.returncode == 0,
-        "stdout_tail": proc.stdout[-8000:],
-        "stderr_tail": proc.stderr[-8000:],
     }
+    if level in {"standard", "deep"}:
+        result["stdout_tail"] = proc.stdout[-8000:]
+        result["stderr_tail"] = proc.stderr[-8000:]
+    else:
+        result["stdout_tail"] = ""
+        result["stderr_tail"] = ""
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +184,18 @@ def main() -> None:
     parser.add_argument("--diff-scope", nargs="*", metavar="FILE",
                         help="check that git diff only touches these files")
     parser.add_argument("--label", default="verify", help="label for this verification run")
+    parser.add_argument("--level", choices=sorted(_VERIFICATION_LEVELS), default="standard",
+                        help="verification depth: shallow (exit code only), standard (exit code + output tails), "
+                             "deep (standard + auto secret-scan and diff-scope)")
+    parser.add_argument("--expect", action="append", default=[],
+                        metavar="TARGET:PATTERN",
+                        help="expect pattern for command output (target:regex); may be repeated. "
+                             "Targets: exit, stdout, stderr. Example: --expect 'stdout:0 failures'")
     args = parser.parse_args()
+
+    # Deep level implies secret-scan and diff-scope (if files were given)
+    if args.level == "deep":
+        args.secret_scan = True
 
     if not args.command and not args.secret_scan and args.diff_scope is None:
         parser.error("at least one of --command, --secret-scan, or --diff-scope is required")
@@ -146,7 +205,13 @@ def main() -> None:
 
     # Run verification commands
     for command in args.command:
-        result = run_command(command, args.repo, args.timeout)
+        result = run_command(command, args.repo, args.timeout, level=args.level)
+        # Check expect patterns when commands ran successfully
+        if result["ok"] and args.expect:
+            expect_failures = check_expectations(result, args.expect)
+            if expect_failures:
+                result["ok"] = False
+                result["expect_failures"] = expect_failures
         event = {
             "timestamp": now_iso(),
             "type": "verification",
@@ -208,6 +273,7 @@ def main() -> None:
     output = {
         "ok": all_ok,
         "label": args.label,
+        "level": args.level,
         "results": results,
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))

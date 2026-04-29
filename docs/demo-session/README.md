@@ -36,8 +36,11 @@ The demo is intentionally lightweight. It is not meant to prove a real code chan
 python3 scripts/hcw_session.py create --repo . --goal "Improve login error handling" --risk medium --tier standard --chain plan-execute
 python3 scripts/hcw_dispatch.py templates/brief.example.json --dry-run
 python3 scripts/hcw_verify.py --repo . --session .hcw/sessions/<session-id> --command "python3 -m py_compile scripts/*.py" --secret-scan --label demo-verify
+python3 scripts/hcw_verify.py --repo . --command "python3 -m py_compile scripts/*.py" --level deep --label deep-demo --expect "stdout:"
 python3 scripts/hcw_summarize.py .hcw/sessions/<session-id>
 ```
+
+The `--level deep` flag automatically enables secret scanning and records full output tails. The `--expect` flag can assert patterns in command output; for example, `--expect "stdout:0 failures"` fails the verification if the pattern is absent.
 
 ## What this demonstrates
 

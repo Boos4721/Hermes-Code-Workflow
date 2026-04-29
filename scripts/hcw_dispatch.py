@@ -18,6 +18,136 @@ def now_iso() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Chain recommendation scoring (mirrors SKILL.md heuristic)
+# ---------------------------------------------------------------------------
+
+_RISK_MAP = {"low": 1, "medium": 2, "high": 3}
+
+
+def _estimate_scope(brief: dict[str, Any]) -> int:
+    """Estimate scope dimension (1-3) from brief fields."""
+    files = brief.get("relevant_files", brief.get("files", []))
+    n = len(files) if isinstance(files, list) else 0
+    if n <= 1:
+        return 1
+    if n <= 3:
+        return 2
+    return 3
+
+
+def _estimate_test_leverage(brief: dict[str, Any]) -> int:
+    """Estimate test-leverage dimension (1-3) from brief fields."""
+    acceptance = brief.get("acceptance", [])
+    test_cmds = [c for c in acceptance if isinstance(c, str) and any(
+        k in c.lower() for k in ("test", "pytest", "jest", "cargo test", "go test", "npm test")
+    )]
+    if not test_cmds:
+        return 1
+    if len(test_cmds) == 1:
+        return 2
+    return 3
+
+
+def _estimate_parallelism(brief: dict[str, Any]) -> int:
+    """Estimate parallelism dimension (1-3) from brief fields."""
+    files = brief.get("relevant_files", brief.get("files", []))
+    n = len(files) if isinstance(files, list) else 0
+    if n <= 1:
+        return 1
+    if n <= 3:
+        return 2
+    return 3
+
+
+def compute_chain_score(brief: dict[str, Any]) -> dict[str, Any]:
+    """Compute the weighted chain-selection score and recommend a chain."""
+    risk_str = brief.get("risk", "medium")
+    risk = _RISK_MAP.get(risk_str, 2)
+    scope = _estimate_scope(brief)
+    test_lev = _estimate_test_leverage(brief)
+    parallelism = _estimate_parallelism(brief)
+
+    score = 0.35 * risk + 0.25 * scope + 0.20 * test_lev + 0.20 * parallelism
+
+    # Recommend chain based on score
+    if score <= 0.90:
+        chain = "quick"
+    elif score <= 1.60:
+        chain = "plan-execute"
+    elif score <= 2.10:
+        chain = "plan-execute" if test_lev <= 1 else "test-first-development"
+    elif score <= 2.50:
+        chain = "multi-worker"
+    else:
+        chain = "subagent-driven" if parallelism >= 2 else "multi-worker"
+
+    # Tie-breaker: risk=3 forces at least plan-execute
+    if risk == 3 and chain == "quick":
+        chain = "plan-execute"
+
+    return {
+        "score": round(score, 2),
+        "dimensions": {
+            "risk": risk,
+            "scope": scope,
+            "test_leverage": test_lev,
+            "parallelism": parallelism,
+        },
+        "recommended_chain": chain,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Decomposition hints
+# ---------------------------------------------------------------------------
+
+def compute_decomposition_hints(brief: dict[str, Any]) -> dict[str, Any]:
+    """Produce lightweight decomposition hints from brief fields."""
+    files = brief.get("relevant_files", brief.get("files", []))
+    file_count = len(files) if isinstance(files, list) else 0
+    acceptance = brief.get("acceptance", [])
+    acceptance_count = len(acceptance) if isinstance(acceptance, list) else 0
+
+    triggers: list[str] = []
+    if file_count > 10:
+        triggers.append(f"file count ({file_count}) exceeds 10")
+    if acceptance_count > 5:
+        triggers.append(f"acceptance checks ({acceptance_count}) exceed 5")
+
+    # Check for multi-language hints
+    extensions: set[str] = set()
+    for f in files if isinstance(files, list) else []:
+        if isinstance(f, str) and "." in f:
+            extensions.add(f.rsplit(".", 1)[-1])
+    lang_groups = {
+        "python": {"py"},
+        "javascript": {"js", "jsx", "mjs", "cjs"},
+        "typescript": {"ts", "tsx"},
+        "rust": {"rs"},
+        "go": {"go"},
+        "java": {"java", "kt"},
+    }
+    detected_langs = sum(1 for langs in lang_groups.values() if extensions & langs)
+    if detected_langs > 2:
+        triggers.append(f"spans {detected_langs} language groups")
+
+    needs_decomposition = len(triggers) > 0
+
+    suggested_subtasks = 0
+    if needs_decomposition:
+        # Suggest 3-7 sub-tasks based on file count
+        suggested_subtasks = min(7, max(3, file_count // 3))
+
+    return {
+        "needs_decomposition": needs_decomposition,
+        "triggers": triggers,
+        "file_count": file_count,
+        "acceptance_count": acceptance_count,
+        "suggested_subtasks": suggested_subtasks,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Brief validation
 # ---------------------------------------------------------------------------
 
@@ -226,6 +356,9 @@ def main() -> None:
     prompt = build_prompt(brief, tier)
     command = worker_command(worker, prompt, mode)
 
+    chain_info = compute_chain_score(brief)
+    decomposition = compute_decomposition_hints(brief)
+
     if args.dry_run:
         print(json.dumps({
             "ok": True,
@@ -235,6 +368,8 @@ def main() -> None:
             "mode": mode,
             "command": command,
             "prompt": prompt,
+            "chain_recommendation": chain_info,
+            "decomposition_hints": decomposition,
         }, ensure_ascii=False, indent=2))
         return
 
@@ -259,6 +394,8 @@ def main() -> None:
         "stdout_tail": proc.stdout[-12000:],
         "stderr_tail": proc.stderr[-12000:],
         "needs_hermes_verification": True,
+        "chain_recommendation": chain_info,
+        "decomposition_hints": decomposition,
     }
     append_event(brief.get("session"), {
         "timestamp": now_iso(),

@@ -63,9 +63,9 @@ Hermes 代码工作流分为一个必需层和一个推荐增强层。
 - `scripts/hcw_session.py`
   - 创建、查看并追加本地工作流会话记录。
 - `scripts/hcw_verify.py`
-  - 运行验证命令、diff 范围检查与密钥扫描，并输出结构化证据。
+  - 运行验证命令、diff 范围检查与密钥扫描，并输出结构化证据。支持验证级别（shallow、standard、deep）和期望模式匹配，可对命令输出做模式断言。
 - `scripts/hcw_dispatch.py`
-  - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。
+  - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。可输出链路推荐评分和轻量分解提示，帮助 Hermes 在派发前做出路由决策。
 - `scripts/hcw_summarize.py`
   - 将工作流记录汇总成最终报告草稿。
 
@@ -91,9 +91,9 @@ Hermes 代码工作流分为一个必需层和一个推荐增强层。
 仓库中的脚本会尽量与 `SKILL.md` 里的规则保持一致：
 
 - `hcw_dispatch.py`
-  - 校验简报结构，在需要时自动判断 mini 还是 standard，并生成与当前 dispatch template 一致的提示词。
+  - 校验简报结构，在需要时自动判断 mini 还是 standard，并生成与当前 dispatch template 一致的提示词。同时计算加权链路选择评分和轻量分解提示，让 Hermes 在派发前做出路由决策。
 - `hcw_verify.py`
-  - 记录结构化验证事件，支持命令式证据、可选的 diff 范围校验，以及 diff 密钥扫描。
+  - 记录结构化验证事件，支持命令式证据、可选的 diff 范围校验，以及 diff 密钥扫描。验证级别（shallow、standard、deep）控制输出详细程度，期望模式匹配可对命令输出做模式断言。
 - `hcw_session.py`
   - 维护 `.hcw/sessions/...` 下的会话产物，包括计划、验证输出和事件历史。
 - `hcw_summarize.py`
