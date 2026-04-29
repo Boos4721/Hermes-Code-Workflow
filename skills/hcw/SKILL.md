@@ -32,7 +32,7 @@ Use Hermes Code Workflow when the user asks to:
 
 - write, change, review, debug, test, refactor, or ship code
 - "按 hermes-code-workflow 跑" / "走 Hermes Code Workflow" / "让 Claude Code 做，我来验"
-- coordinate multiple workers such as Claude Code, Codex, OpenCode, Gemini command-line interface, Qwen, or other Agent Client Protocol/software development kit agents
+- coordinate multiple workers such as Claude Code, Codex, OpenCode, Gemini, Qwen, or other Agent Client Protocol/software development kit agents
 - create a repeatable workflow rather than a one-off manual edit
 - compare multiple implementations or ask one worker to review another
 - turn a vague request into a plan, execution pass, validation loop, and final report
