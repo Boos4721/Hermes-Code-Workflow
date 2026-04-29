@@ -21,6 +21,31 @@ Hermes Code Workflow makes the process explicit:
 7. Verify with real commands and file inspection.
 8. Report changed files, checks, risks, and follow-up work.
 
+## Installation model
+
+Hermes Code Workflow has one required layer and one recommended enhancement layer.
+
+### Required in Hermes Agent
+
+Install Hermes Code Workflow as a Hermes skill. This is enough to use the workflow from Hermes: Hermes can brainstorm, plan, dispatch workers, run Python adapters, verify evidence, and report results.
+
+### Recommended in Claude Code
+
+For best results, also install these three Claude Code ecosystem workflows in the Claude Code environment:
+
+- Claude Code Workflow
+- Everything Claude Code
+- Superpowers
+
+They are not hard dependencies of Hermes Code Workflow. They are recommended because Claude Code itself will better understand chain execution, command and rule layering, test-first discipline, review gates, and verification-before-completion when Hermes delegates coding work to it.
+
+Practical recommendation:
+
+1. Install Hermes Code Workflow in Hermes Agent.
+2. Install Claude Code Workflow, Everything Claude Code, and Superpowers in Claude Code.
+3. Let Hermes remain the planner, router, verifier, and reporter.
+4. Let Claude Code and other workers execute bounded coding or review tasks.
+
 ## Repository contents
 
 - `README.md`

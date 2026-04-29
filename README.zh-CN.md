@@ -21,6 +21,31 @@ Hermes 代码工作流把流程显式化：
 7. 用真实命令和文件检查来验证结果。
 8. 汇报改动文件、检查结果、风险和后续事项。
 
+## 安装模型
+
+Hermes 代码工作流分为一个必需层和一个推荐增强层。
+
+### Hermes Agent 里的必需层
+
+把 Hermes 代码工作流安装成 Hermes 技能即可。这已经足够从 Hermes 侧使用完整流程：Hermes 可以头脑风暴、规划、派发执行者、运行 Python 适配器、验证证据并汇报结果。
+
+### Claude Code 里的推荐增强层
+
+为了获得最佳效果，建议同时在 Claude Code 环境里安装这三个 Claude Code 生态工作流：
+
+- Claude Code Workflow
+- Everything Claude Code
+- Superpowers
+
+它们不是 Hermes 代码工作流的硬依赖。推荐安装它们，是因为当 Hermes 把编码任务交给 Claude Code 时，Claude Code 自己会更理解链式执行、命令与规则分层、先写测试的纪律、审查门禁和完成前验证。
+
+实际建议：
+
+1. 在 Hermes Agent 里安装 Hermes 代码工作流。
+2. 在 Claude Code 里安装 Claude Code Workflow、Everything Claude Code 和 Superpowers。
+3. 让 Hermes 继续负责规划、路由、验证和汇报。
+4. 让 Claude Code 以及其他执行者负责有边界的编码或审查任务。
+
 ## 仓库内容
 
 - `README.md`
