@@ -32,7 +32,7 @@ Hermes 代码工作流分为一个必需层和一个推荐增强层。
 #### 方式 1：通过托管的 SKILL.md 链接安装
 
 ```bash
-hermes skills install https://<your-host-or-raw-url>/hcw/SKILL.md
+hermes skills install https://raw.githubusercontent.com/Boos4721/Hermes-Code-Workflow/master/skills/hcw/SKILL.md
 ```
 
 #### 方式 2：通过本地仓库安装
@@ -150,7 +150,7 @@ Hermes 代码工作流将“编排”和“执行”分离。
 - OpenCode
   - 适合作为相对独立的编码执行者或备用执行者。
 
-- Gemini 命令行工具
+- Gemini
   - 适合宽范围分析、架构讨论、诊断，以及在可用时通过 Agent Client Protocol 风格执行。
 
 ## Python 适配层

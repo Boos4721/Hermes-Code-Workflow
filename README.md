@@ -32,7 +32,7 @@ Install the skill into Hermes so Hermes itself can use the workflow.
 #### Option 1: install from a hosted SKILL.md URL
 
 ```bash
-hermes skills install https://<your-host-or-raw-url>/hcw/SKILL.md
+hermes skills install https://raw.githubusercontent.com/Boos4721/Hermes-Code-Workflow/master/skills/hcw/SKILL.md
 ```
 
 #### Option 2: install from a local checkout
@@ -150,7 +150,7 @@ Hermes Code Workflow separates orchestration from execution.
 - OpenCode
   - Useful as a provider-independent coding worker or fallback.
 
-- Gemini command-line interface
+- Gemini
   - Useful for broad analysis, architecture discussion, diagnosis, and Agent Client Protocol style execution when available.
 
 ## Python adapter layer
