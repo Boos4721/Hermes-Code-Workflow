@@ -9,7 +9,7 @@ Demonstrate how Hermes can:
 1. create a workflow session;
 2. record bounded dispatch and verification events;
 3. run a verification pass with structured evidence;
-4. summarize artifacts into a final report.
+4. summarize artifacts into a final report that preserves dispatch heuristics and verification evidence depth.
 
 ## Scenario
 
@@ -40,7 +40,7 @@ python3 scripts/hcw_verify.py --repo . --command "python3 -m py_compile scripts/
 python3 scripts/hcw_summarize.py .hcw/sessions/<session-id>
 ```
 
-The `--level deep` flag automatically enables secret scanning and records full output tails. The `--expect` flag can assert patterns in command output; for example, `--expect "stdout:0 failures"` fails the verification if the pattern is absent.
+The `--level deep` flag automatically enables secret scanning and records full output tails. The `--expect` flag can assert patterns in command output; for example, `--expect "stdout:0 failures"` fails the verification if the pattern is absent. The final report now groups verification events by run label, infers the evidence depth, and preserves dispatch recommendation metadata such as chain score and decomposition hints.
 
 ## What this demonstrates
 
