@@ -169,6 +169,8 @@ Summarize artifacts:
 python3 scripts/hcw_summarize.py .hcw/sessions/<session-id>
 ```
 
+See `docs/demo-session/` for a concrete end-to-end example session with sample artifacts, a worker brief, verification evidence, and a final report.
+
 ## Completion standard
 
 A task is not complete because a worker says it is complete.

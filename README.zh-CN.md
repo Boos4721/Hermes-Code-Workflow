@@ -169,6 +169,8 @@ python3 scripts/hcw_dispatch.py templates/brief.example.json
 python3 scripts/hcw_summarize.py .hcw/sessions/<session-id>
 ```
 
+可以查看 `docs/demo-session/` 目录，其中放了一套完整的端到端示例产物，包括示例会话、执行简报、验证证据和最终报告。
+
 ## 完成标准
 
 任务不会因为某个执行智能体说“完成了”就算完成。

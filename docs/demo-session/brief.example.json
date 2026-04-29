@@ -1,0 +1,32 @@
+{
+  "session_id": "HCW-DEMO-LOGIN",
+  "repo": "/root/Hermes-Code-Workflow",
+  "session": "docs/demo-session",
+  "worker": "Claude Code",
+  "phase": "implement",
+  "mode": "implement",
+  "tier": "standard",
+  "goal": "Improve login error handling so invalid credentials return a consistent user-facing message.",
+  "environment_context": {
+    "branch": "master",
+    "language_runtime": "Python 3.11",
+    "build_tool": "python3 -m py_compile scripts/*.py",
+    "test_command": "python3 -m py_compile scripts/*.py",
+    "lint_command": "none"
+  },
+  "relevant_files": [
+    "scripts/hcw_verify.py",
+    "scripts/hcw_summarize.py"
+  ],
+  "constraints": [
+    "Do not commit or push unless explicitly authorized.",
+    "Keep changes scoped to the requested task.",
+    "Follow existing project conventions for naming and structure."
+  ],
+  "acceptance": [
+    "python3 -m py_compile scripts/*.py exits 0.",
+    "Diff touches only intended files.",
+    "No secrets appear in the diff."
+  ],
+  "files": []
+}

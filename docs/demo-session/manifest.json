@@ -1,0 +1,11 @@
+{
+  "session_id": "HCW-DEMO-LOGIN",
+  "created_at": "2026-04-30T03:00:00+00:00",
+  "repo": "/root/Hermes-Code-Workflow",
+  "goal": "Improve login error handling",
+  "phase": "verify",
+  "risk": "medium",
+  "tier": "standard",
+  "chain": "plan-execute",
+  "events_file": "events.jsonl"
+}

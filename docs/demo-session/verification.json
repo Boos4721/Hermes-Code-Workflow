@@ -1,0 +1,30 @@
+[
+  {
+    "timestamp": "2026-04-30T03:05:00+00:00",
+    "type": "verification",
+    "phase": "verify",
+    "label": "demo-verify",
+    "data": {
+      "command": "python3 -m py_compile scripts/*.py",
+      "cwd": "/root/Hermes-Code-Workflow",
+      "started_at": "2026-04-30T03:05:00+00:00",
+      "finished_at": "2026-04-30T03:05:02+00:00",
+      "exit_code": 0,
+      "ok": true,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    }
+  },
+  {
+    "timestamp": "2026-04-30T03:05:03+00:00",
+    "type": "verification",
+    "phase": "verify",
+    "label": "demo-verify:secret_scan",
+    "data": {
+      "check": "secret_scan",
+      "ok": true,
+      "findings": [],
+      "lines_scanned": 42
+    }
+  }
+]
