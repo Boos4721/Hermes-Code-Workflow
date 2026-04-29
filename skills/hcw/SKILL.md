@@ -455,6 +455,42 @@ If you cannot complete a step, report what you tried, the exact error, and what 
 - [ ] Constraints call out every forbidden directory or file pattern
 - [ ] No secrets, tokens, or environment variables are embedded in the brief
 
+## Dispatch Brief Tiering
+
+Hermes chooses between two brief tiers based on task complexity. The tier decision is made before filling the template.
+
+### Mini brief — use when ALL of these hold
+
+- Single file or at most two closely related files
+- Goal fits in one sentence with no open design questions
+- No architectural decision or dependency trade-off
+- Acceptance checks are one or two commands at most
+- Risk is low: no security, data-migration, or public-facing contract change
+
+What the mini brief **omits** compared to the standard brief:
+
+| Section | Mini brief treatment |
+|---------|---------------------|
+| Environment Context | Omit build tool, lint command, and language/runtime if the worker can infer them from the repo |
+| Relevant Files | May list a single file or directory instead of every path |
+| Constraints | May collapse to one line: "Follow existing project conventions. Only modify files listed above." |
+| Required Output | May reduce to: summary, files changed, checks run, evidence |
+| When Stuck | May omit entirely for trivial tasks |
+
+The mini brief **always** includes: Repository, Session, Mode, Goal, and Acceptance Checks. These five fields are never optional.
+
+### Standard brief — use for everything else
+
+Use the full template defined above. When in doubt, use the standard brief; a slightly longer brief costs less than a failed dispatch and repair loop.
+
+### Tier selection rules
+
+1. If the quick chain is the intended chain, default to mini brief.
+2. If brainstorm was required, default to standard brief.
+3. If the worker is in `review` mode and the diff is small (under 50 lines), a mini brief is acceptable.
+4. If the task involves more than two files, always use the standard brief.
+5. If the task touches security-sensitive code, always use the standard brief with the full Constraints section.
+
 ## Verification Gate
 
 **Iron Law:** No completion claims without fresh verification evidence.
@@ -510,6 +546,85 @@ For non-trivial code changes, use two review dimensions (inspired by Superpowers
 2. **Code quality:** Is it maintainable, safe, idiomatic, tested, and scoped?
 
 Use separate workers or separate review passes when possible. Spec compliance must pass before code quality review begins.
+
+### Spec compliance checklist (run first; must pass before code quality review)
+
+```markdown
+## Spec Compliance Review
+
+Reviewer: <worker or Hermes>
+Session: <session identifier>
+Brief goal: <copy the one-sentence goal from the brief>
+
+### Goal coverage
+
+- [ ] Every acceptance check in the brief was run and passes
+- [ ] The implemented behavior matches the stated goal — not more, not less
+- [ ] No requirements from the brief are missing
+
+### Scope discipline
+
+- [ ] Only files listed in the brief (or justified dependencies) were modified
+- [ ] No unrelated refactors, style changes, or "while I was here" edits
+- [ ] No new dependencies added without being listed in constraints
+
+### Constraint adherence
+
+- [ ] Every constraint from the brief is satisfied
+- [ ] Forbidden files, directories, or patterns were not touched
+- [ ] Project-specific style rules (if any) were followed
+
+### Acceptance evidence
+
+- [ ] Worker pasted command output (not a summary) for every acceptance check
+- [ ] Exit codes match what Hermes observes when re-running the same commands
+- [ ] No placeholder or stale evidence (output is from this run, not a previous one)
+
+### Verdict
+
+PASS — proceed to code quality review.
+FAIL — return specific gaps with line references to the implementer for repair.
+```
+
+### Code quality checklist (run after spec compliance passes)
+
+```markdown
+## Code Quality Review
+
+Reviewer: <worker or Hermes>
+Session: <session identifier>
+
+### Correctness
+
+- [ ] Logic is correct for all expected inputs and edge cases
+- [ ] Error handling is explicit — no silent swallowing, no empty catch blocks
+- [ ] No hardcoded secrets, credentials, or tokens
+
+### Safety
+
+- [ ] User input is validated at system boundaries
+- [ ] No injection risks (command, SQL, path traversal, cross-site scripting)
+- [ ] No unsafe type casts, unchecked array access, or off-by-one errors in security-sensitive paths
+
+### Maintainability
+
+- [ ] Functions are focused (under 50 lines preferred)
+- [ ] Files are cohesive (under 800 lines preferred)
+- [ ] No deep nesting (under 5 levels)
+- [ ] Names are descriptive; no single-letter variables outside loops
+- [ ] No dead code, commented-out blocks, or debug statements left behind
+
+### Testing
+
+- [ ] New or changed logic has test coverage
+- [ ] Tests cover the happy path and at least one failure or edge case
+- [ ] Tests are deterministic — no reliance on external state, order, or timing
+
+### Verdict
+
+PASS — implementation is ready for final report.
+FAIL — return issues to the implementer. If issues are low severity and the user wants speed, flag them as known and proceed.
+```
 
 ## Model Selection
 
