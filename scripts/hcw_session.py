@@ -40,12 +40,13 @@ def create(args: argparse.Namespace) -> None:
         "goal": args.goal,
         "phase": "classify",
         "risk": args.risk,
+        "tier": args.tier,
         "chain": args.chain,
         "events_file": "events.jsonl",
     }
     write_json(session_dir / "manifest.json", manifest)
     (session_dir / "events.jsonl").touch()
-    print(json.dumps({"ok": True, "session_dir": str(session_dir), **manifest}, ensure_ascii=False))
+    print(json.dumps({"ok": True, "session_dir": str(session_dir), **manifest}, ensure_ascii=False, indent=2))
 
 
 def append(args: argparse.Namespace) -> None:
@@ -60,19 +61,35 @@ def append(args: argparse.Namespace) -> None:
         event["data"] = json.loads(args.data)
     with (session_dir / "events.jsonl").open("a", encoding="utf-8") as f:
         f.write(json.dumps(event, ensure_ascii=False) + "\n")
-    print(json.dumps({"ok": True, "event": event}, ensure_ascii=False))
+    print(json.dumps({"ok": True, "event": event}, ensure_ascii=False, indent=2))
 
 
 def show(args: argparse.Namespace) -> None:
     session_dir = Path(args.session)
     manifest = read_json(session_dir / "manifest.json")
     events_path = session_dir / "events.jsonl"
-    events = []
+    events: list[dict[str, Any]] = []
     if events_path.exists():
         for line in events_path.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 events.append(json.loads(line))
-    print(json.dumps({"manifest": manifest, "events": events}, ensure_ascii=False, indent=2))
+
+    # Build summary counts
+    type_counts: dict[str, int] = {}
+    for e in events:
+        t = e.get("type", "unknown")
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    summary: dict[str, Any] = {
+        "manifest": manifest,
+        "event_count": len(events),
+        "event_types": type_counts,
+    }
+
+    if args.full:
+        summary["events"] = events
+
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
 def main() -> None:
@@ -85,6 +102,8 @@ def main() -> None:
     p.add_argument("--repo", default=os.getcwd())
     p.add_argument("--goal", required=True)
     p.add_argument("--risk", default="medium", choices=["low", "medium", "high"])
+    p.add_argument("--tier", default="standard", choices=["mini", "standard"],
+                   help="brief tier for this session")
     p.add_argument("--chain", default="plan-execute")
     p.set_defaults(func=create)
 
@@ -98,6 +117,7 @@ def main() -> None:
 
     p = sub.add_parser("show", help="show a session manifest and events")
     p.add_argument("session")
+    p.add_argument("--full", action="store_true", help="include all events in output")
     p.set_defaults(func=show)
 
     args = parser.parse_args()

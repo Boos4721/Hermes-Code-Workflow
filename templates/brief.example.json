@@ -5,15 +5,29 @@
   "worker": "cc",
   "phase": "implement",
   "mode": "implement",
-  "goal": "Describe the exact coding task here.",
+  "tier": "standard",
+  "goal": "Describe the exact coding task here — one sentence, testable, observable.",
+  "environment_context": {
+    "branch": "main",
+    "language_runtime": "Python 3.11",
+    "build_tool": "python -m build",
+    "test_command": "pytest",
+    "lint_command": "ruff check ."
+  },
+  "relevant_files": [
+    "src/module/target.py",
+    "tests/test_target.py"
+  ],
   "constraints": [
     "Do not commit or push unless explicitly authorized.",
     "Do not read or print secrets.",
-    "Keep changes scoped to the requested task."
+    "Keep changes scoped to the requested task.",
+    "Follow existing project conventions for naming and structure."
   ],
   "acceptance": [
-    "Relevant tests or checks pass.",
-    "Hermes can verify the final diff and command output."
+    "pytest exits 0 with 0 failures.",
+    "Diff touches only files under src/module/ and tests/.",
+    "No secrets appear in the diff."
   ],
   "files": []
 }

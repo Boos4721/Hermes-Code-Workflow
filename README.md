@@ -55,19 +55,49 @@ Practical recommendation:
 - `README.zh-CN.md`
   - Chinese project introduction.
 - `skills/hcw/SKILL.md`
-  - Main Hermes skill definition.
+  - Main Hermes skill definition, including chain selection guidance, brainstorm and repair-loop guards, brief tiering, review templates, and practical orchestration heuristics.
 - `skills/hcw/references/python-adapters.md`
-  - Design notes for Python adapters that connect Hermes with command-line tools, software development kits, and agent processes.
+  - Python adapter reference with dispatch, verification, session, and summarization conventions aligned to the current workflow.
 - `templates/brief.example.json`
-  - Example task brief for dispatching a bounded worker job.
+  - Example bounded worker brief that includes `tier`, environment context, constraints, and acceptance checks.
 - `scripts/hcw_session.py`
   - Create, inspect, and append events to local workflow session artifacts.
 - `scripts/hcw_verify.py`
-  - Run verification commands and emit structured evidence in JavaScript Object Notation.
+  - Run verification commands, diff-scope checks, and secret scanning, then emit structured evidence in JavaScript Object Notation.
 - `scripts/hcw_dispatch.py`
-  - Dispatch a bounded task brief to a supported worker command.
+  - Validate a mini or standard brief, build a worker prompt, and dispatch a bounded task to a supported worker command.
 - `scripts/hcw_summarize.py`
   - Summarize workflow artifacts into a final report draft.
+
+## Workflow heuristics and enforcement
+
+The workflow now includes practical decision rules so Hermes can operate more consistently:
+
+- **Chain selection guidance**
+  - A decision aid and a weighted heuristic help choose between quick, plan-execute, test-first development, multi-worker, subagent-driven, debug, and ship chains.
+- **Brainstorm guardrails**
+  - Clear skip criteria, done criteria, and hard termination guards prevent brainstorm loops from dragging on without resolution.
+- **Repair-loop guardrails**
+  - Focused repair rounds are capped, regressions are tracked separately, and no-progress detection stops repeated ineffective retries.
+- **Dispatch brief tiering**
+  - Hermes can choose between `mini` and `standard` briefs depending on scope, risk, and review needs.
+- **Review and verification discipline**
+  - Spec compliance review comes before code quality review, and claim-to-evidence mappings make verification more operational.
+- **Recursive decomposition and depth limits**
+  - Large tasks can be split into independently verifiable sub-tasks, while orchestration depth is capped by risk so the workflow does not over-nest.
+
+## Scripted workflow support
+
+The repository scripts are designed to mirror the workflow rules in `SKILL.md`:
+
+- `hcw_dispatch.py`
+  - Validates brief structure, auto-detects mini versus standard tier when needed, and emits prompts that match the current dispatch template.
+- `hcw_verify.py`
+  - Records structured verification events, supports command-based evidence, optional diff-scope enforcement, and secret scanning on diffs.
+- `hcw_session.py`
+  - Maintains session artifacts under `.hcw/sessions/...` for plans, verification output, and event history.
+- `hcw_summarize.py`
+  - Converts collected artifacts into a concise final report draft for Hermes to review before reporting upstream.
 
 ## Relationship to reference workflows
 

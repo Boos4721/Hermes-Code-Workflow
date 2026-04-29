@@ -115,6 +115,28 @@ Brainstorm is complete and Hermes may proceed to planning or dispatch when **all
 
 If any item above is not met, Hermes must continue the brainstorm phase — ask the missing question, propose the missing approach, or request the missing approval — before dispatching any worker.
 
+### Brainstorm termination guard
+
+Brainstorm must not loop indefinitely. Apply these hard stops:
+
+- **Question round limit.** After 5 rounds of clarifying questions without reaching done criteria, stop. Present the human partner with a summary of what is resolved, what remains open, and a recommended default for each open item. Ask the partner to decide: accept defaults, answer remaining questions, or simplify scope.
+- **Time budget.** If the brainstorm phase has consumed more than 15 minutes of wall-clock time (or 20 conversational turns), pause and present the same summary. The partner may extend, simplify, or cancel.
+- **Repeated question detection.** If the same question is asked twice without a new answer, Hermes must stop and propose a default instead of asking again.
+- **Scope growth detection.** If the scope has grown by more than 50% compared to the original request (measured by number of files, components, or acceptance checks), stop and ask the partner whether to split into multiple sessions.
+
+When any termination guard triggers, Hermes must not silently continue. Present the state and let the partner choose the next action.
+
+### Repair-loop termination guard
+
+Repair loops in the dispatch-verify-iterate cycle are bounded:
+
+- **Maximum repair rounds.** Three rounds per failure type. A "round" is one dispatch of a focused repair brief followed by one verification attempt. After three rounds on the same failure, escalate to the human partner with a summary: original failure, what each round tried, and the persistent symptom.
+- **Regression detection.** If a repair round fixes the original failure but introduces a new failure in a previously passing check, count that as a new failure type with its own three-round budget. If two or more regressions accumulate, stop and escalate.
+- **No-progress detection.** If two consecutive repair rounds produce identical verification output (same error message, same exit code, same failure line), stop immediately. Repeating the same repair is a signal that the brief or approach is wrong, not that more attempts will help.
+- **Total repair budget.** Across all failure types, a session must not exceed 8 total repair rounds. After 8 rounds, escalate regardless of progress.
+
+When escalating, include: the original goal, each failure type encountered, what was tried per round, and what verification evidence was collected.
+
 ### Brainstorm output
 
 ```text
@@ -268,6 +290,90 @@ Use this table to pick the right chain. Read top to bottom; the first matching r
 | Everything else (features, refactors, multi-file changes, non-trivial work) | **Plan-execute chain** | Brainstorm → plan → dispatch → verify → iterate. |
 
 When in doubt, prefer **plan-execute chain** — it is the safe default. Compose chains when conditions overlap: for example, a non-trivial feature where tests matter uses plan-execute with test-first development embedded in the dispatch step.
+
+### Chain-selection scoring heuristic
+
+When the decision matrix above does not produce a clear winner, score each candidate chain on four dimensions. Weights reflect operational impact: getting the chain wrong on a high-risk task costs more than picking a slightly slower chain on a trivial one.
+
+| Dimension | Weight | What to measure |
+|-----------|--------|-----------------|
+| Risk | 0.35 | Security, data integrity, public-facing contract, production deployment. Low = 1, Medium = 2, High = 3. |
+| Scope | 0.25 | Number of files and cross-module dependencies. 1 file = 1, 2-3 files = 2, 4+ files or cross-module = 3. |
+| Test leverage | 0.20 | How much value tests add. No meaningful tests = 1, regression guard = 2, core correctness proof = 3. |
+| Parallelism | 0.20 | Number of independent sub-tasks. Single task = 1, 2 tasks = 2, 3+ independent tasks = 3. |
+
+Score formula: `score = 0.35 * risk + 0.25 * scope + 0.20 * test_leverage + 0.20 * parallelism`
+
+| Score range | Recommended chain |
+|-------------|-------------------|
+| 1.0 -- 1.5 | Quick chain |
+| 1.6 -- 2.1 | Plan-execute chain |
+| 2.2 -- 2.6 | Plan-execute with test-first development embedded |
+| 2.7 -- 3.0 | Multi-worker chain or subagent-driven chain |
+
+Tie-breaking: when two chains score within 0.3 of each other, prefer the chain with more verification stages. When the risk dimension alone is 3 (high), always use at least plan-execute regardless of the total score.
+
+### Recursive decomposition heuristic
+
+When a task is too large for a single worker dispatch, decompose it. Use these thresholds to decide when decomposition is needed and when to stop:
+
+**Decompose when any of these hold:**
+
+- The plan has more than 7 discrete steps.
+- The brief would need to list more than 10 relevant files.
+- The estimated worker time exceeds 20 minutes (or 30 conversational turns).
+- The task spans more than two distinct programming languages or frameworks.
+- The acceptance checks require more than 5 distinct commands.
+
+**Decomposition procedure:**
+
+1. Split along module, file-group, or concern boundaries — not along temporal steps.
+2. Each sub-task must have its own goal sentence, relevant files list, and acceptance checks.
+3. Sub-tasks should be independently verifiable. If sub-task B cannot be verified without sub-task A completing first, they are sequential steps, not decomposition targets.
+4. Target 3-7 sub-tasks per decomposition. Fewer than 3 means the task was not actually too large. More than 7 means the decomposition itself needs further splitting.
+
+**Stop decomposing when:**
+
+- Each sub-task fits within a single mini brief (1-2 files, one sentence goal, 1-2 acceptance checks).
+- The sub-task can be completed by one worker in under 10 minutes.
+- Further splitting would create sub-tasks with no independent verification value.
+
+**Decomposition output format:**
+
+```text
+.hcw/sessions/<session-id>/
+  decomposition.md    # list of sub-tasks with dependencies, ordering, and per-task acceptance checks
+```
+
+### Orchestration depth limit
+
+Orchestration depth is the number of nested delegation layers: Hermes dispatches a worker, which may internally spawn subagents, which may spawn further subagents. Depth is measured from the original user request to the leaf worker.
+
+| Task risk | Maximum depth | Rationale |
+|-----------|---------------|-----------|
+| Low | 3 layers | Simple tasks need minimal delegation overhead. |
+| Medium | 4 layers | Multi-step work may need subagent splitting. |
+| High | 5 layers | Complex, high-stakes work benefits from deep specialization, but each layer adds verification cost. |
+
+**Depth counting rules:**
+
+- Hermes dispatching a worker counts as layer 1.
+- A worker spawning a subagent counts as layer 2, and so on.
+- Hermes-native tool calls (read_file, search_files, terminal) do not count as depth layers — they are direct actions, not delegation.
+- Parallel dispatches at the same depth count as one layer, not one per dispatch.
+
+**When the depth limit is reached:**
+
+- Do not spawn another delegation layer. Instead, the current worker must complete the task using its own tools and reasoning.
+- If the worker cannot proceed without deeper delegation, it must report this as a blocker with the specific capability gap.
+- Hermes may then restructure the task (re-decompose, change chain, or escalate to the human partner).
+
+**Depth escalation path:**
+
+If a task's natural decomposition requires more depth than the risk level allows, Hermes should either:
+- Increase the risk classification (and document why), or
+- Flatten the decomposition (merge sub-tasks to reduce nesting), or
+- Escalate to the human partner with a recommendation.
 
 ## Workflow Chains
 
@@ -635,6 +741,100 @@ Use the least powerful model that can handle each role to conserve cost and incr
 | Mechanical implementation (1-2 files, clear spec) | Fast/cheap | Isolated function, config change |
 | Integration and judgment (multi-file) | Standard | Feature with dependencies |
 | Architecture, design, review | Most capable | System design, security review |
+
+## Chain Selection Scoring Heuristic
+
+Use the decision aid above first. When multiple chains still look plausible, score the task so Hermes has a repeatable tie-breaker.
+
+### Inputs
+
+Rate each dimension from 0 to 3:
+
+- **risk** — security, data, deployment, and public-surface impact
+- **scope** — number of files, components, and moving parts
+- **test leverage** — how much confidence can be gained from writing or running tests early
+- **parallelism** — how naturally the task splits into independent tracks
+
+### Weighted score
+
+```text
+score = 0.35 * risk + 0.25 * scope + 0.20 * test_leverage + 0.20 * parallelism
+```
+
+### Interpretation
+
+- **0.00-0.90** → quick chain, unless another hard rule forbids it
+- **0.91-1.60** → plan-execute chain
+- **1.61-2.10** → test-first development chain when tests are meaningful; otherwise plan-execute chain
+- **2.11-2.50** → multi-worker chain when a second perspective materially reduces risk
+- **2.51-3.00** → subagent-driven chain if the work also decomposes into independent tasks; otherwise multi-worker chain
+
+### Tie-breakers
+
+- If `risk = 3`, never use the quick chain. Minimum chain is plan-execute.
+- If two chains are tied, prefer the chain with the stronger verification phase.
+- If tests are weak or unavailable, reduce `test leverage` by 1 before final scoring.
+- If the user explicitly asks for shipping, the ship chain overrides the score.
+
+## Recursive Decomposition Heuristic
+
+When a task is too large for one bounded worker brief, Hermes should decompose it recursively instead of sending an oversized prompt.
+
+### Trigger conditions
+
+Decompose when **any** of these are true:
+
+- the plan has more than 7 steps
+- the likely change touches more than 10 files
+- the work is expected to take more than 20 minutes of focused implementation time
+- the task spans more than 2 languages, runtimes, or subsystems
+- acceptance requires more than 5 commands or observability checks
+
+### Decomposition goals
+
+Split the task into **3 to 7** child tasks where possible. Each child task should have:
+
+- one sentence goal
+- bounded file scope
+- at least one independent acceptance check
+- a clear owner or worker mode
+
+### Stop splitting when
+
+Stop decomposition when **all** of these are true for a child task:
+
+- it is suitable for a mini brief or a narrowly scoped standard brief
+- a competent worker could likely finish it in about 10 minutes
+- further splitting would not create independently verifiable units
+
+If decomposition still does not yield bounded tasks, escalate to the human partner and propose a narrower milestone.
+
+## Orchestration Depth Limit
+
+Hermes must limit how many orchestration layers a task can accumulate.
+
+### Depth budget by risk
+
+- **low risk** → maximum depth 3
+- **medium risk** → maximum depth 4
+- **high risk** → maximum depth 5
+
+### Counting rules
+
+- Direct Hermes-native file edits and verification commands do **not** count toward depth.
+- A worker dispatched by Hermes counts as **one** layer.
+- Parallel workers launched from the same level still count as **one** additional layer.
+- Review after implementation counts as another layer only if it is a separately dispatched worker.
+
+### What to do at the limit
+
+When the depth limit is reached:
+
+- do not spawn another worker just to keep the pattern going
+- either finish with the current worker set and Hermes-native verification
+- or escalate to the human partner with the exact capability gap
+
+Depth limits exist to prevent ornate orchestration from replacing actual progress.
 
 ## Learning Loop
 

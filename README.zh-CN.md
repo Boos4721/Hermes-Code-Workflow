@@ -55,19 +55,49 @@ Hermes 代码工作流分为一个必需层和一个推荐增强层。
 - `README.zh-CN.md`
   - 中文项目介绍。
 - `skills/hcw/SKILL.md`
-  - Hermes 主技能定义。
+  - Hermes 主技能定义，包含链路选择指导、头脑风暴与修复循环守卫、简报分级、审查模板以及实用编排启发式规则。
 - `skills/hcw/references/python-adapters.md`
-  - Python 适配器设计说明，用于连接 Hermes、命令行工具、软件开发工具包和智能体进程。
+  - Python 适配器参考文档，整理了派发、验证、会话和汇总脚本与当前工作流之间的对齐约定。
 - `templates/brief.example.json`
-  - 用于派发有边界执行任务的任务说明示例。
+  - 有边界执行任务的示例简报，包含 `tier`、环境上下文、约束和验收检查。
 - `scripts/hcw_session.py`
   - 创建、查看并追加本地工作流会话记录。
 - `scripts/hcw_verify.py`
-  - 运行验证命令并输出结构化证据。
+  - 运行验证命令、diff 范围检查与密钥扫描，并输出结构化证据。
 - `scripts/hcw_dispatch.py`
-  - 将边界清晰的任务说明派发给受支持的执行命令。
+  - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。
 - `scripts/hcw_summarize.py`
   - 将工作流记录汇总成最终报告草稿。
+
+## 工作流启发式与约束
+
+现在这套工作流已经包含一组更实用的决策规则，帮助 Hermes 更稳定地执行：
+
+- **链路选择指导**
+  - 既有决策辅助表，也有加权启发式，帮助在 quick、plan-execute、test-first development、multi-worker、subagent-driven、debug 和 ship 链之间选择。
+- **头脑风暴守卫**
+  - 明确了 skip criteria、done criteria 和 termination guard，避免头脑风暴无限拉长却没有结论。
+- **修复循环守卫**
+  - 限制聚焦修复轮次，单独追踪回归问题，并在连续无进展时主动停止重复尝试。
+- **简报分级**
+  - Hermes 可以根据范围、风险和审查需求，在 `mini` 与 `standard` 简报之间切换。
+- **审查与验证纪律**
+  - 先做规格符合性审查，再做代码质量审查；同时用 claim-to-evidence 映射把验证动作具体化。
+- **递归分解与深度限制**
+  - 大任务可以拆成可独立验证的子任务，同时根据风险限制编排深度，避免工作流无限嵌套。
+
+## 脚本化工作流支持
+
+仓库中的脚本会尽量与 `SKILL.md` 里的规则保持一致：
+
+- `hcw_dispatch.py`
+  - 校验简报结构，在需要时自动判断 mini 还是 standard，并生成与当前 dispatch template 一致的提示词。
+- `hcw_verify.py`
+  - 记录结构化验证事件，支持命令式证据、可选的 diff 范围校验，以及 diff 密钥扫描。
+- `hcw_session.py`
+  - 维护 `.hcw/sessions/...` 下的会话产物，包括计划、验证输出和事件历史。
+- `hcw_summarize.py`
+  - 将已有产物整理成简洁的最终报告草稿，供 Hermes 在对外汇报前复核。
 
 ## 与参考工作流的关系
 
