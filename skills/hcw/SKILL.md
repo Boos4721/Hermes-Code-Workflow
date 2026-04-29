@@ -101,6 +101,20 @@ If any condition fails, brainstorm is mandatory.
 7. **User reviews spec** — wait for approval before proceeding
 8. **Transition to planning** — create implementation plan or dispatch to planning worker
 
+### Brainstorm done criteria
+
+Brainstorm is complete and Hermes may proceed to planning or dispatch when **all** of the following are true:
+
+1. **Goal is one sentence and testable.** The user has confirmed what success looks like in observable terms.
+2. **Scope is bounded.** The files, components, or areas to change are listed. No open question about "where does this live?"
+3. **Approach is chosen.** At least two approaches were compared (or one was presented and accepted). Trade-offs are recorded.
+4. **Constraints are explicit.** Performance, security, compatibility, or style constraints are written down, not implied.
+5. **Acceptance checks are defined.** At least one runnable command or observable outcome that proves the work is done.
+6. **Open questions are resolved or parked.** No blocking question remains unanswered. Parked items are listed with an owner and a deadline or decision rule.
+7. **User has approved the design.** Explicit approval, not silence. If the user said "looks good" or "go ahead," that counts. No response does not count.
+
+If any item above is not met, Hermes must continue the brainstorm phase — ask the missing question, propose the missing approach, or request the missing approval — before dispatching any worker.
+
 ### Brainstorm output
 
 ```text
@@ -238,6 +252,22 @@ Unless the user explicitly chooses a worker:
 3. **Second opinion / review:** route to Codex or OpenCode.
 4. **Provider fallback:** if one worker fails due to quota/provider/runtime issues, switch worker and preserve artifacts.
 5. **Final acceptance:** Hermes verifies directly.
+
+## Chain Selection Decision Aid
+
+Use this table to pick the right chain. Read top to bottom; the first matching row wins.
+
+| Condition | Chain | Why |
+|-----------|-------|-----|
+| Committing, pushing, or releasing is the goal | **Ship chain** | Shipping has its own validation gates; skip it only if the user says "don't commit yet." |
+| The task is a failure, crash, regression, or unknown root cause | **Debug chain** | Diagnosis before fixing; do not guess and patch. |
+| The task is small, low-risk, single-file or trivially scoped, and the user did not ask for planning | **Quick chain** | Skip brainstorm and worker overhead. |
+| Tests are meaningful for the new logic (new feature, bug fix with reproduction, library, application programming interface) | **test-first development chain** (compose with plan-execute or subagent-driven) | Write failing test first, then implement. |
+| The plan has three or more independent tasks that can run in parallel | **Subagent-driven chain** | Fresh subagent per task, parallel execution, per-task review. |
+| The user asked for multi-perspective analysis, second opinions, or high confidence | **Multi-worker chain** | Gemini analyze → Claude Code implement → Codex/OpenCode review. |
+| Everything else (features, refactors, multi-file changes, non-trivial work) | **Plan-execute chain** | Brainstorm → plan → dispatch → verify → iterate. |
+
+When in doubt, prefer **plan-execute chain** — it is the safe default. Compose chains when conditions overlap: for example, a non-trivial feature where tests matter uses plan-execute with test-first development embedded in the dispatch step.
 
 ## Workflow Chains
 
