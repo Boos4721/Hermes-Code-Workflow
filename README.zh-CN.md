@@ -48,6 +48,8 @@ Hermes 代码工作流分为一个必需层和一个推荐增强层。
 
 ## 仓库内容
 
+- `.github/workflows/skill-review.yml`
+  - 用于审查 `SKILL.md` 变更的拉取请求工作流。
 - `README.md`
   - 英文项目介绍。
 - `README.zh-CN.md`

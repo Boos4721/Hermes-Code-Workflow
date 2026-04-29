@@ -1,0 +1,22 @@
+# Tessl Skill Review
+
+name: Tessl Skill Review
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "**/SKILL.md"
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tesslio/skill-review@main
+      # Optional quality gate. Keep disabled unless explicitly requested.
+      # with:
+      #   fail-threshold: 70

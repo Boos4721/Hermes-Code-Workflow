@@ -48,6 +48,8 @@ Practical recommendation:
 
 ## Repository contents
 
+- `.github/workflows/skill-review.yml`
+  - Pull request review workflow for changes to `SKILL.md` files.
 - `README.md`
   - English project introduction.
 - `README.zh-CN.md`

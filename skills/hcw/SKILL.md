@@ -203,10 +203,10 @@ Recommended adapter conventions:
 
 ```text
 scripts/
-  hermes-code-workflow_dispatch.py      # run one worker from a JavaScript Object Notation brief
-  hermes-code-workflow_verify.py        # run configured validation checks and emit JavaScript Object Notation
-  hermes-code-workflow_session.py       # create/read/update Hermes Code Workflow session artifacts
-  hermes-code-workflow_summarize.py     # summarize artifacts for final report
+  hcw_dispatch.py      # run one worker from a JSON brief
+  hcw_verify.py        # run configured validation checks and emit JSON evidence
+  hcw_session.py       # create/read/update Hermes Code Workflow session artifacts
+  hcw_summarize.py     # summarize artifacts for final report
 ```
 
 See `references/python-adapters.md` for detailed scaffolding, structured data schemas, and implementation patterns.
