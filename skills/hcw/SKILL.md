@@ -80,6 +80,16 @@ Worker operational constraints:
 - Anything where "what exactly are we building?" is not 100% clear
 - Bug fixes with unknown root cause
 
+### Skip criteria — brainstorm may be skipped when ALL of these hold
+
+- Change is a single file or a small, self-contained set of files (at most three)
+- Goal is unambiguous: the user stated exactly what to change and what success looks like
+- No architectural decision, dependency trade-off, or design question is open
+- Risk is low: no security, data-migration, or public-facing contract change
+- The quick chain is the intended chain (typos, config edits, obvious one-liners, renames)
+
+If any condition fails, brainstorm is mandatory.
+
 ### Brainstorm process
 
 1. **Explore project context** — check files, docs, recent commits, existing patterns
@@ -139,7 +149,7 @@ Primary worker fails → next enabled worker → Hermes-native execution. Always
 
 ## Worker Transports
 
-### Agent Client Protocol workers
+### Agent Client Protocol workers *(Planned — integration not yet wired)*
 
 Use Agent Client Protocol when the worker supports it and structured agent-process control helps.
 
@@ -217,7 +227,7 @@ scripts/
   hcw_summarize.py     # summarize artifacts for final report
 ```
 
-See `references/python-adapters.md` for detailed scaffolding, structured data schemas, and implementation patterns.
+See `references/python-adapters.md` for detailed scaffolding, structured data schemas, and implementation patterns. *(Planned — file not yet written.)*
 
 ## Default Routing
 
@@ -307,6 +317,21 @@ Use only when committing/pushing/releasing is in scope.
 3. Prepare commit with configured identity and sign-off when required.
 4. Push only when user has requested or approved it.
 5. Report commit hash and remote branch.
+
+## Failure Routing
+
+When a chain step fails, Hermes decides the next action based on the failure type. Do not re-dispatch blindly; route based on what actually happened.
+
+| Failure type | Symptom | Hermes action |
+|---|---|---|
+| **Worker runtime crash** | Worker process exits non-zero, times out, or produces no output | Retry once with the same brief. If it fails again, switch to the fallback worker and preserve any partial artifacts. |
+| **Acceptance check failure** | Worker output claims success but the command fails or output does not match | Send the exact failure message back to the same worker with a focused repair brief (not the original full brief). Limit to three repair rounds. |
+| **Spec compliance failure** | Reviewer finds the implementation does not match the goal or violates constraints | Return specific gaps to the implementer with line references. Re-run spec compliance review after fixes. |
+| **Code quality failure** | Reviewer finds maintainability, safety, or idiomatic issues | Return issues to the implementer. If issues are low severity and the user wants speed, flag them as known and proceed. |
+| **Scope creep** | Worker modified files or behavior outside the brief | Revert out-of-scope changes. Re-dispatch with a tighter brief or add the scope explicitly if the change is justified. |
+| **Ambiguous or missing context** | Worker reports it cannot proceed because the brief is incomplete | Hermes gathers the missing context, updates the brief, and re-dispatches. |
+
+After three repair rounds on the same failure, stop and escalate to the human partner with a summary of what was tried and the persistent failure.
 
 ## Session Artifacts
 
@@ -429,6 +454,21 @@ Skip any step = lying, not verifying
 | Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
 | Agent completed | version control system diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
+
+### Verification mapping — claim to evidence
+
+| Claim type | Hermes must run | Acceptable evidence |
+|---|---|---|
+| Tests pass | The test command from the brief (e.g. `npm test`, `pytest`) | Exit code 0, zero failures, output matches expected count |
+| Build succeeds | The build command from the brief (e.g. `npm run build`, `cargo build`) | Exit code 0, no errors in stderr or stdout |
+| Lint/format clean | The lint or format-check command | Exit code 0, no warnings or errors reported |
+| Bug is fixed | A reproduction command or test that previously failed | Exit code 0, output no longer shows the original symptom |
+| Files changed as expected | `git diff --name-only` | Only files listed in the brief appear; no unintended additions or deletions |
+| No secrets in diff | `git diff` scan for token/key patterns | No matches for common secret patterns (API keys, passwords, tokens) |
+| Feature works end-to-end | The acceptance check commands from the brief | All commands exit 0 with expected output |
+| Dependency install succeeds | Package manager install command | Exit code 0, lock file updated if applicable |
+
+If a claim type is not listed above, Hermes must define the verification command before accepting the claim.
 
 If verification fails, use an iterative repair loop with the concrete failure message.
 
