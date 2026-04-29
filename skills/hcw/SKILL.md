@@ -61,6 +61,14 @@ Do not use Hermes Code Workflow as a substitute for explicit user approval on ri
 
 Workers include coding command-line interfaces, software development kit-backed agents, Agent Client Protocol agents, and Hermes subagents. They may analyze, implement, review, test, or package work, but they do not self-certify completion.
 
+Worker operational constraints:
+
+- **Scope-locked.** Only touch files named in the brief. If a dependency is missing, report it; do not silently edit extra files.
+- **Goal-faithful.** Implement exactly what the brief describes. Do not add features, refactor surrounding code, or "improve" things not in scope.
+- **No self-certification.** Worker success claims are input to verification, never proof. The worker must paste evidence; Hermes re-runs the check.
+- **No silent skipping.** If a step fails or is impossible, report what was tried, the exact error, and what is believed necessary. Never omit a step without explanation.
+- **Preserve context.** When output is truncated or a command produces excessive logs, paste the last 20 lines (or enough to show the outcome) rather than summarizing.
+
 ## Brainstorm Phase
 
 **Hard gate:** Do NOT dispatch any worker for implementation until the brainstorm phase is complete for non-trivial work. Quick chain (typos, single-line fixes, obvious changes) skips brainstorm.
@@ -320,27 +328,77 @@ If a project already has an established planning/session directory, use that ins
 
 ## Dispatch Brief Template
 
-Every worker brief should include:
+Every worker brief should include the sections below. Hermes fills every bracket before sending; no field may be left as a placeholder.
 
 ```markdown
 You are a worker in Hermes Code Workflow. Hermes is the orchestrator and will verify your output.
+Do not commit, push, or publish unless the brief explicitly says so.
 
 Repository: <absolute path>
+Session: <session identifier>
 Mode: analyze | implement | review
-Goal: <exact goal>
-Relevant files: <paths or discovery instructions>
-Constraints:
-- <forbidden changes>
-- <style/project conventions>
-Acceptance checks:
-- <commands or observable checks>
-Output required:
-- summary
-- files changed
-- tests/checks run
-- blockers/risks
-Do not commit or push unless explicitly instructed.
+
+## Goal
+
+<one precise sentence describing what success looks like>
+
+## Environment Context
+
+- Branch: <current branch>
+- Language/runtime: <primary language and version>
+- Build tool: <build command>
+- Test command: <test command>
+- Lint/format command: <command or "none">
+
+## Relevant Files
+
+<list every file the worker should read or modify, with absolute paths>
+<if discovery is needed, state exactly what to search for and where>
+
+## Constraints
+
+- Only modify files listed above unless discovery reveals a necessary dependency; if so, list it in your output.
+- Follow project conventions for naming, structure, and error handling.
+- <project-specific style rules, if any>
+- <forbidden areas: generated code, vendored dependencies, lock files, etc.>
+
+## Acceptance Checks
+
+<list concrete commands the worker must run and what success looks like for each>
+Example:
+- `npm run build` exits 0 with no errors
+- `pytest tests/test_auth.py` exits 0 with 0 failures
+- Diff touches only files under src/auth/
+
+## Required Output
+
+When finished, produce this exact structure:
+
+- **summary**: one paragraph describing what was done
+- **files changed**: list of file paths with one-line description per file
+- **checks run**: each command executed, its exit code, and outcome (pass/fail)
+- **evidence**: paste the last 10 lines of test or build output showing the result
+- **blockers**: anything that prevented full completion, with what was attempted and what actually happened
+- **risks**: anything the orchestrator should verify or watch for
+
+If you cannot complete a step, report what you tried, the exact error, and what you believe is needed. Do not skip silently.
+
+## When Stuck
+
+1. Report the blocker with the exact error message or unexpected behavior.
+2. State what you tried and why you expected it to work.
+3. Propose one or two next steps.
+4. Do not guess or patch blindly; the orchestrator will decide how to proceed.
 ```
+
+### Brief quality checklist (Hermes checks before dispatch)
+
+- [ ] Every bracket in the template above is filled with a concrete value
+- [ ] Goal is one sentence, testable, and scoped to what the worker can observe
+- [ ] Relevant files list is complete; no discovery left implicit
+- [ ] Acceptance checks are runnable commands, not vague descriptions
+- [ ] Constraints call out every forbidden directory or file pattern
+- [ ] No secrets, tokens, or environment variables are embedded in the brief
 
 ## Verification Gate
 
@@ -361,16 +419,6 @@ BEFORE claiming any status or expressing satisfaction:
 
 Skip any step = lying, not verifying
 ```
-
-### Verification checklist
-
-- `git status --short` reviewed
-- diff reviewed for scope and unintended changes
-- requested behavior is observable or tests cover it
-- build/test/lint command run when relevant
-- worker claims backed by actual output
-- no secrets exposed in summary
-- no local-only helper/planning files committed without approval
 
 ### Red flags — STOP
 
@@ -427,14 +475,25 @@ After difficult or repeated work:
 
 ## Verification Checklist
 
+### Pre-dispatch (before sending the brief)
+
 - [ ] Relevant skills loaded before acting
 - [ ] Intent classified and chain selected
 - [ ] Brainstorm phase completed for non-trivial work (design approved)
 - [ ] Worker transport chosen deliberately: Agent Client Protocol, official software development kit/command-line interface, or Hermes-native
-- [ ] Worker brief includes goal, repository, constraints, acceptance checks, and no-commit rule
-- [ ] Artifacts recorded for substantial work
-- [ ] Diff and git status reviewed
-- [ ] Build/test/lint or equivalent validation run when relevant
-- [ ] Failed validation triggers focused repair loop
-- [ ] Two-stage review completed (spec compliance → code quality) for non-trivial changes
-- [ ] Final report states files changed, checks run, result, and risks
+- [ ] Brief passes the [brief quality checklist](#brief-quality-checklist-hermes-checks-before-dispatch) above
+- [ ] Every acceptance check in the brief is a runnable command with a defined pass condition
+- [ ] Session artifact directory created
+
+### Post-dispatch (after receiving worker output)
+
+- [ ] Worker output includes all required fields: summary, files changed, checks run, evidence, blockers, risks
+- [ ] `git status --short` reviewed; no unexpected files staged or modified
+- [ ] Diff reviewed for scope: only intended files changed, no unintended deletions or additions
+- [ ] Every acceptance check from the brief was actually run; exit codes and output match claimed results
+- [ ] Evidence lines pasted by the worker match what Hermes observes when re-running the same command
+- [ ] No secrets, tokens, or credentials appear in the diff or worker output
+- [ ] Build/test/lint (or equivalent validation) confirmed by Hermes independently, not trusted from worker report alone
+- [ ] Failed validation triggers a focused repair loop with the concrete failure message, not a re-dispatch of the full brief
+- [ ] Two-stage review completed for non-trivial changes: spec compliance first, code quality second
+- [ ] Final report states files changed, checks run with exit codes, overall result, and remaining risks
