@@ -4,7 +4,7 @@
 
 Hermes 代码工作流是一套面向 Hermes Agent 的实用软件开发工作流。
 
-它的目标很简单：Hermes 负责规划、编排、校验和汇报；Claude Code、Codex、OpenCode、Gemini 命令行工具以及其他智能体进程负责执行有边界的实现、分析、测试或审查任务。
+它的目标很简单：Hermes 负责规划、编排、校验和汇报；Claude Code、Codex、OpenCode、Gemini 以及其他智能体进程负责执行有边界的实现、分析、测试或审查任务。
 
 ## 为什么需要它
 
@@ -21,13 +21,36 @@ Hermes 代码工作流把流程显式化：
 7. 用真实命令和文件检查来验证结果。
 8. 汇报改动文件、检查结果、风险和后续事项。
 
-## 安装模型
+## 安装
 
 Hermes 代码工作流分为一个必需层和一个推荐增强层。
 
-### Hermes Agent 里的必需层
+### 安装到 Hermes Agent
 
-把 Hermes 代码工作流安装成 Hermes 技能即可。这已经足够从 Hermes 侧使用完整流程：Hermes 可以头脑风暴、规划、派发执行者、运行 Python 适配器、验证证据并汇报结果。
+先把这个技能安装到 Hermes 里，这样 Hermes 自己就能直接使用这套工作流。
+
+#### 方式 1：通过托管的 SKILL.md 链接安装
+
+```bash
+hermes skills install https://<your-host-or-raw-url>/hcw/SKILL.md
+```
+
+#### 方式 2：通过本地仓库安装
+
+Hermes `skills install` 目前接受技能标识符或 HTTP(S) 链接，不直接接受本地文件路径。对于本地仓库，请把技能文件复制到 Hermes 的本地技能目录：
+
+```bash
+mkdir -p ~/.hermes/skills/software-development/hcw
+cp skills/hcw/SKILL.md ~/.hermes/skills/software-development/hcw/SKILL.md
+```
+
+然后验证技能已经可用：
+
+```bash
+hermes skills list | grep -i hcw
+```
+
+这样就足够从 Hermes 侧使用完整流程：Hermes 可以头脑风暴、规划、派发执行者、运行 Python 适配器、验证证据并汇报结果。
 
 ### Claude Code 里的推荐增强层
 

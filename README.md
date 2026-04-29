@@ -4,7 +4,7 @@ Language: English | [中文版](README.zh-CN.md)
 
 Hermes Code Workflow is a practical software development workflow for Hermes Agent.
 
-The purpose is simple: Hermes plans, coordinates, verifies, and reports. Coding workers such as Claude Code, Codex, OpenCode, Gemini command-line interface, and other agent processes perform bounded implementation, analysis, testing, or review work.
+The purpose is simple: Hermes plans, coordinates, verifies, and reports. Coding workers such as Claude Code, Codex, OpenCode, Gemini, and other agent processes perform bounded implementation, analysis, testing, or review work.
 
 ## Why this exists
 
@@ -21,15 +21,38 @@ Hermes Code Workflow makes the process explicit:
 7. Verify with real commands and file inspection.
 8. Report changed files, checks, risks, and follow-up work.
 
-## Installation model
+## Installation
 
 Hermes Code Workflow has one required layer and one recommended enhancement layer.
 
-### Required in Hermes Agent
+### Install in Hermes Agent
 
-Install Hermes Code Workflow as a Hermes skill. This is enough to use the workflow from Hermes: Hermes can brainstorm, plan, dispatch workers, run Python adapters, verify evidence, and report results.
+Install the skill into Hermes so Hermes itself can use the workflow.
 
-### Recommended in Claude Code
+#### Option 1: install from a hosted SKILL.md URL
+
+```bash
+hermes skills install https://<your-host-or-raw-url>/hcw/SKILL.md
+```
+
+#### Option 2: install from a local checkout
+
+Hermes `skills install` currently accepts a hub identifier or an HTTP(S) URL, not a local file path. For a local checkout, copy the skill into your Hermes skills directory:
+
+```bash
+mkdir -p ~/.hermes/skills/software-development/hcw
+cp skills/hcw/SKILL.md ~/.hermes/skills/software-development/hcw/SKILL.md
+```
+
+Then verify it is available:
+
+```bash
+hermes skills list | grep -i hcw
+```
+
+This is enough to use the workflow from Hermes: Hermes can brainstorm, plan, dispatch workers, run Python adapters, verify evidence, and report results.
+
+### Recommended enhancement in Claude Code
 
 For best results, also install these three Claude Code ecosystem workflows in the Claude Code environment:
 
