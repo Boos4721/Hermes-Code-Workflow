@@ -106,6 +106,14 @@ hermes skills list | grep -i hcw
 
 这样就足够从 Hermes 侧使用完整流程：Hermes 可以头脑风暴、规划、派发执行者、运行 Python 适配器、验证证据并汇报结果。
 
+如果以后你是通过本地复制方式安装 skill，并且想从这个 GitHub 仓库刷新本地安装，可以直接运行：
+
+```bash
+python3 scripts/hcw_update.py
+```
+
+它会把仓库中的最新 `SKILL.md` 和 reference 文件同步到 `~/.hermes/skills/software-development/hcw/`。
+
 ### Claude Code 里的推荐增强层
 
 为了获得最佳效果，建议同时在 Claude Code 环境里安装这三个 Claude Code 生态工作流：
@@ -153,6 +161,8 @@ hermes skills list | grep -i hcw
   - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。
 - `scripts/hcw_summarize.py`
   - 将工作流记录汇总成最终报告草稿。
+- `scripts/hcw_update.py`
+  - 从这个 GitHub 仓库刷新本地 Hermes 安装的 HCW skill 文件。
 
 ## 工作流启发式与约束
 
@@ -175,6 +185,8 @@ hermes skills list | grep -i hcw
 
 仓库中的脚本会尽量与 `SKILL.md` 里的规则保持一致：
 
+- `hcw_update.py`
+  - 把这个 GitHub 仓库中的最新 `SKILL.md` 和 reference 文件同步到 `~/.hermes/skills/software-development/hcw/`，这样本地 skill 更新就不需要再手工复制。
 - `hcw_dispatch.py`
   - 校验简报结构，在需要时自动判断 mini 还是 standard，并生成与当前 dispatch template 一致的提示词。同时计算加权链路选择评分和轻量分解提示，让 Hermes 在派发前做出路由决策。
 - `hcw_verify.py`

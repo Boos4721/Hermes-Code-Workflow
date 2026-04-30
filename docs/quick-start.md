@@ -149,6 +149,7 @@ Choose the next document based on what you need:
 - Want the full operator walkthrough? Read `docs/full-demo.md`
 - Want practical adoption ideas? Read `docs/real-world-use-cases.md`
 - Want to install the skill into Hermes? See the installation section in `README.md`
+- Want to refresh a locally copied HCW skill from GitHub later? Run `python3 scripts/hcw_update.py`
 
 ## Common first mistakes
 

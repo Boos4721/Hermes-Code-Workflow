@@ -104,6 +104,14 @@ Then verify it is available:
 hermes skills list | grep -i hcw
 ```
 
+To refresh that local installation later from this GitHub repository:
+
+```bash
+python3 scripts/hcw_update.py
+```
+
+This updates the installed HCW skill files under `~/.hermes/skills/software-development/hcw/` from the repository's raw GitHub URLs.
+
 This is enough to use the workflow from Hermes: Hermes can brainstorm, plan, dispatch workers, run Python adapters, verify evidence, and report results.
 
 ### Recommended enhancement in Claude Code
@@ -153,6 +161,8 @@ Practical recommendation:
   - Validate a mini or standard brief, build a worker prompt, and dispatch a bounded task to a supported worker command.
 - `scripts/hcw_summarize.py`
   - Summarize workflow artifacts into a final report draft.
+- `scripts/hcw_update.py`
+  - Update the installed HCW skill from this GitHub repository into the local Hermes skills directory.
 
 ## Workflow heuristics and enforcement
 
@@ -175,6 +185,8 @@ The workflow now includes practical decision rules so Hermes can operate more co
 
 The repository scripts are designed to mirror the workflow rules in `SKILL.md`:
 
+- `hcw_update.py`
+  - Pulls the latest `SKILL.md` and reference files from this GitHub repository into `~/.hermes/skills/software-development/hcw/`, making local skill refreshes repeatable without manual copying.
 - `hcw_dispatch.py`
   - Validates brief structure, auto-detects mini versus standard tier when needed, and emits prompts that match the current dispatch template. Also computes a weighted chain-selection score and lightweight decomposition hints so Hermes can make routing decisions before dispatch.
 - `hcw_verify.py`
