@@ -16,6 +16,31 @@ Hermes 代码工作流是一套面向 Hermes Agent 的实用软件开发工作�
 
 这三份文档，就是把“看起来很专业”变成“真的知道怎么用”的最短路径。
 
+## 30 秒 Demo
+
+下面这几行，基本就是 HCW 的最小闭环：
+
+```bash
+$ python3 scripts/hcw_session.py create --repo . --goal "Improve login error handling"
+Created session: .hcw/sessions/HCW-20260430-041500
+
+$ python3 scripts/hcw_dispatch.py templates/brief.example.json --dry-run
+Brief valid. Recommended chain: plan-execute
+
+$ python3 scripts/hcw_verify.py --repo . --command "python3 -m py_compile scripts/*.py"
+PASS: exit_code=0
+
+$ python3 scripts/hcw_summarize.py .hcw/sessions/HCW-20260430-041500
+Generated final report from session artifacts
+```
+
+一眼就能看懂它在做什么：
+
+- 先创建 session
+- 再准备或校验有边界的 brief
+- 用真实命令做 verification
+- 最后从 artifacts 生成报告
+
 ## 为什么需要它
 
 现代代码工作经常会同时使用多个助手或命令行编码工具。如果没有固定工作流，智能体容易改动过宽、跳过测试、没有证据就声称完成，或者在不同会话之间丢失上下文。

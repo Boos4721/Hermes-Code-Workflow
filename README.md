@@ -16,6 +16,31 @@ If you only read three things, read these:
 
 These three documents are the fastest path from “this looks professional” to “I know how to use it”.
 
+## 30-second demo
+
+This is the shortest possible picture of how HCW feels in practice:
+
+```bash
+$ python3 scripts/hcw_session.py create --repo . --goal "Improve login error handling"
+Created session: .hcw/sessions/HCW-20260430-041500
+
+$ python3 scripts/hcw_dispatch.py templates/brief.example.json --dry-run
+Brief valid. Recommended chain: plan-execute
+
+$ python3 scripts/hcw_verify.py --repo . --command "python3 -m py_compile scripts/*.py"
+PASS: exit_code=0
+
+$ python3 scripts/hcw_summarize.py .hcw/sessions/HCW-20260430-041500
+Generated final report from session artifacts
+```
+
+In one glance, you can see the whole loop:
+
+- create a session
+- prepare or validate a bounded brief
+- verify with real commands
+- generate a final report from artifacts
+
 ## Why this exists
 
 Modern coding work often involves more than one assistant or command-line coding tool. Without a clear workflow, agents can edit too broadly, skip tests, claim success without proof, or lose context between sessions.
