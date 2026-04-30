@@ -10,9 +10,9 @@ Hermes 代码工作流是一套面向 Hermes Agent 的实用软件开发工作�
 
 如果你只看三份内容，优先看这三份：
 
-- [快速开始](docs/quick-start.md) —— 用大约五分钟跑通一次工作流
-- [完整 Demo](docs/full-demo.md) —— 看完整的从请求到验证报告的闭环
-- [真实案例](docs/real-world-use-cases.md) —— 理解 HCW 在日常工作里到底适合做什么
+- [快速开始](docs/quick-start.zh-CN.md) —— 用大约五分钟跑通一次工作流
+- [完整 Demo](docs/full-demo.zh-CN.md) —— 看完整的从请求到验证报告的闭环
+- [真实案例](docs/real-world-use-cases.zh-CN.md) —— 理解 HCW 在日常工作里到底适合做什么
 
 这三份文档，就是把“看起来很专业”变成“真的知道怎么用”的最短路径。
 
@@ -66,13 +66,13 @@ Hermes 代码工作流特别适合这些场景：
 - 用真实命令验证执行结果，而不是只听一句“完成了”；
 - 同时协调多个编码执行者，但继续由 Hermes 统一编排。
 
-具体场景可看 [真实案例](docs/real-world-use-cases.md)。
+具体场景可看 [真实案例](docs/real-world-use-cases.zh-CN.md)。
 
 ## 推荐阅读顺序
 
-1. [快速开始](docs/quick-start.md)
-2. [完整 Demo](docs/full-demo.md)
-3. [真实案例](docs/real-world-use-cases.md)
+1. [快速开始](docs/quick-start.zh-CN.md)
+2. [完整 Demo](docs/full-demo.zh-CN.md)
+3. [真实案例](docs/real-world-use-cases.zh-CN.md)
 4. [Demo 会话产物说明](docs/demo-session/README.md)
 
 ## 安装
