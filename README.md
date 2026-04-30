@@ -6,6 +6,16 @@ Hermes Code Workflow is a practical software development workflow for Hermes Age
 
 The purpose is simple: Hermes plans, coordinates, verifies, and reports. Coding workers such as Claude Code, Codex, OpenCode, Gemini, and other agent processes perform bounded implementation, analysis, testing, or review work.
 
+## Start here
+
+If you only read three things, read these:
+
+- [Quick Start](docs/quick-start.md) — get the workflow running in about five minutes
+- [Full Demo](docs/full-demo.md) — see the end-to-end loop from request to verified final report
+- [Real-World Use Cases](docs/real-world-use-cases.md) — understand where HCW is actually useful in day-to-day work
+
+These three documents are the fastest path from “this looks professional” to “I know how to use it”.
+
 ## Why this exists
 
 Modern coding work often involves more than one assistant or command-line coding tool. Without a clear workflow, agents can edit too broadly, skip tests, claim success without proof, or lose context between sessions.
@@ -20,6 +30,25 @@ Hermes Code Workflow makes the process explicit:
 6. Review non-trivial changes independently.
 7. Verify with real commands and file inspection.
 8. Report changed files, checks, risks, and follow-up work.
+
+## What you can do with it
+
+Hermes Code Workflow is especially useful when you want to:
+
+- fix bugs without letting a worker over-edit the codebase;
+- implement small features with explicit acceptance checks;
+- separate implementation from review;
+- verify worker claims with real commands;
+- coordinate multiple coding workers while keeping Hermes as the orchestrator.
+
+For concrete examples, see [Real-World Use Cases](docs/real-world-use-cases.md).
+
+## Recommended reading order
+
+1. [Quick Start](docs/quick-start.md)
+2. [Full Demo](docs/full-demo.md)
+3. [Real-World Use Cases](docs/real-world-use-cases.md)
+4. [Demo Session Artifacts](docs/demo-session/README.md)
 
 ## Installation
 
@@ -77,6 +106,14 @@ Practical recommendation:
   - English project introduction.
 - `README.zh-CN.md`
   - Chinese project introduction.
+- `docs/quick-start.md`
+  - Fastest path to first success.
+- `docs/full-demo.md`
+  - End-to-end walkthrough of the full workflow loop.
+- `docs/real-world-use-cases.md`
+  - Practical scenarios for adoption and evaluation.
+- `docs/demo-session/README.md`
+  - Artifact-level example session walkthrough.
 - `skills/hcw/SKILL.md`
   - Main Hermes skill definition, including chain selection guidance, brainstorm and repair-loop guards, brief tiering, review templates, and practical orchestration heuristics.
 - `skills/hcw/references/python-adapters.md`

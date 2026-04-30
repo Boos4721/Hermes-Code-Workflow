@@ -6,6 +6,16 @@ Hermes 代码工作流是一套面向 Hermes Agent 的实用软件开发工作�
 
 它的目标很简单：Hermes 负责规划、编排、校验和汇报；Claude Code、Codex、OpenCode、Gemini 以及其他智能体进程负责执行有边界的实现、分析、测试或审查任务。
 
+## 从这里开始
+
+如果你只看三份内容，优先看这三份：
+
+- [快速开始](docs/quick-start.md) —— 用大约五分钟跑通一次工作流
+- [完整 Demo](docs/full-demo.md) —— 看完整的从请求到验证报告的闭环
+- [真实案例](docs/real-world-use-cases.md) —— 理解 HCW 在日常工作里到底适合做什么
+
+这三份文档，就是把“看起来很专业”变成“真的知道怎么用”的最短路径。
+
 ## 为什么需要它
 
 现代代码工作经常会同时使用多个助手或命令行编码工具。如果没有固定工作流，智能体容易改动过宽、跳过测试、没有证据就声称完成，或者在不同会话之间丢失上下文。
@@ -20,6 +30,25 @@ Hermes 代码工作流把流程显式化：
 6. 对非简单改动进行独立审查。
 7. 用真实命令和文件检查来验证结果。
 8. 汇报改动文件、检查结果、风险和后续事项。
+
+## 你可以拿它做什么
+
+Hermes 代码工作流特别适合这些场景：
+
+- 修 bug，但又不想让执行智能体顺手改一大片；
+- 做小功能开发，同时保留明确的验收检查；
+- 把实现和审查拆开，避免“自己改自己过”；
+- 用真实命令验证执行结果，而不是只听一句“完成了”；
+- 同时协调多个编码执行者，但继续由 Hermes 统一编排。
+
+具体场景可看 [真实案例](docs/real-world-use-cases.md)。
+
+## 推荐阅读顺序
+
+1. [快速开始](docs/quick-start.md)
+2. [完整 Demo](docs/full-demo.md)
+3. [真实案例](docs/real-world-use-cases.md)
+4. [Demo 会话产物说明](docs/demo-session/README.md)
 
 ## 安装
 
@@ -77,6 +106,14 @@ hermes skills list | grep -i hcw
   - 英文项目介绍。
 - `README.zh-CN.md`
   - 中文项目介绍。
+- `docs/quick-start.md`
+  - 最快跑通第一遍的入口。
+- `docs/full-demo.md`
+  - 完整工作流闭环的端到端演示。
+- `docs/real-world-use-cases.md`
+  - 适合落地采用和评估的真实使用场景。
+- `docs/demo-session/README.md`
+  - 偏产物层的示例会话说明。
 - `skills/hcw/SKILL.md`
   - Hermes 主技能定义，包含链路选择指导、头脑风暴与修复循环守卫、简报分级、审查模板以及实用编排启发式规则。
 - `skills/hcw/references/python-adapters.md`
@@ -86,9 +123,9 @@ hermes skills list | grep -i hcw
 - `scripts/hcw_session.py`
   - 创建、查看并追加本地工作流会话记录。
 - `scripts/hcw_verify.py`
-  - 运行验证命令、diff 范围检查与密钥扫描，并输出结构化证据。支持验证级别（shallow、standard、deep）和期望模式匹配，可对命令输出做模式断言。
+  - 运行验证命令、diff 范围检查与密钥扫描，并输出结构化证据。
 - `scripts/hcw_dispatch.py`
-  - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。可输出链路推荐评分和轻量分解提示，帮助 Hermes 在派发前做出路由决策。
+  - 校验 mini 或 standard 简报、构建执行提示词，并将任务派发给受支持的执行者命令。
 - `scripts/hcw_summarize.py`
   - 将工作流记录汇总成最终报告草稿。
 
