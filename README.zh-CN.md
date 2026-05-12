@@ -73,7 +73,8 @@ Hermes 代码工作流特别适合这些场景：
 1. [快速开始](docs/quick-start.zh-CN.md)
 2. [完整 Demo](docs/full-demo.zh-CN.md)
 3. [真实案例](docs/real-world-use-cases.zh-CN.md)
-4. [Demo 会话产物说明](docs/demo-session/README.md)
+4. [Design 代理](docs/design-agent.zh-CN.md) — 结构化架构/设计阶段
+5. [Demo 会话产物说明](docs/demo-session/README.md)
 
 ## 安装
 

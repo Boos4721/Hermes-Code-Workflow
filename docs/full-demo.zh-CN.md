@@ -21,16 +21,17 @@
 
 ## 先看整个流程
 
-HCW 的完整流程可以概括成 8 步：
+HCW 的完整流程可以概括成 9 步：
 
 1. Hermes 收到编码任务；
 2. Hermes 判断风险和适合的 chain；
-3. Hermes 创建 session；
-4. Hermes 准备 bounded worker brief；
-5. Hermes 派发 worker；
-6. Hermes 运行 verification；
-7. Hermes 汇总 artifacts；
-8. Hermes 输出带证据的最终报告。
+3. **（可选）Hermes 运行设计阶段** — 代码库探索、设计方案提出、架构审查，产出 `design.md`；
+4. Hermes 创建 session；
+5. Hermes 准备 bounded worker brief；
+6. Hermes 派发 worker；
+7. Hermes 运行 verification；
+8. Hermes 汇总 artifacts；
+9. Hermes 输出带证据的最终报告。
 
 ## 场景设定
 
