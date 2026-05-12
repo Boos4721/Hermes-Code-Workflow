@@ -17,6 +17,8 @@ DEFAULT_SKILL_DEST = Path.home() / ".hermes/skills/software-development/hcw"
 FILES_TO_SYNC = {
     "SKILL.md": "skills/hcw/SKILL.md",
     "references/python-adapters.md": "skills/hcw/references/python-adapters.md",
+    "scripts/hcw_design.py": "scripts/hcw_design.py",
+    "templates/design.template.md": "templates/design.template.md",
 }
 
 

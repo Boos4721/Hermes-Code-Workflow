@@ -20,12 +20,13 @@ This demo is the answer.
 
 1. Hermes receives a coding task.
 2. Hermes decides the chain and risk level.
-3. Hermes creates a session.
-4. Hermes prepares a bounded worker brief.
-5. Hermes dispatches a worker.
-6. Hermes runs verification.
-7. Hermes summarizes artifacts.
-8. Hermes reports evidence, risks, and next steps.
+3. **(Optional) Hermes runs the design phase** — codebase exploration, design proposals, architecture review, produces `design.md`.
+4. Hermes creates a session.
+5. Hermes prepares a bounded worker brief.
+6. Hermes dispatches a worker.
+7. Hermes runs verification.
+8. Hermes summarizes artifacts.
+9. Hermes reports evidence, risks, and next steps.
 
 ## Scenario
 

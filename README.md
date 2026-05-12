@@ -73,7 +73,8 @@ For concrete examples, see [Real-World Use Cases](docs/real-world-use-cases.md).
 1. [Quick Start](docs/quick-start.md)
 2. [Full Demo](docs/full-demo.md)
 3. [Real-World Use Cases](docs/real-world-use-cases.md)
-4. [Demo Session Artifacts](docs/demo-session/README.md)
+4. [Design Agent](docs/design-agent.md) — structured architecture/design phase
+5. [Demo Session Artifacts](docs/demo-session/README.md)
 
 ## Installation
 
