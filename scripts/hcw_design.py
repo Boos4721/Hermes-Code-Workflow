@@ -824,6 +824,208 @@ def cmd_finalize(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# visual — visual/UI design via huashu-design (integrated skill)
+# ---------------------------------------------------------------------------
+
+_HUASHU_CAPABILITIES = [
+    {
+        "id": "prototype",
+        "label": "交互原型 (Interactive Prototype)",
+        "description": "高保真产品 mockup，可点击切换，Playwright 验证",
+        "typical_time": "10-15 min",
+        "deliverable": "Single-file HTML · real iPhone bezel · clickable",
+    },
+    {
+        "id": "slides",
+        "label": "幻灯片 (Slide Decks)",
+        "description": "HTML deck (browser presentation) + 可编辑 PPTX",
+        "typical_time": "15-25 min",
+        "deliverable": "HTML deck + editable PPTX",
+    },
+    {
+        "id": "animation",
+        "label": "动画 (Motion Design)",
+        "description": "时间轴驱动的 motion design，MP4/GIF 导出",
+        "typical_time": "8-12 min",
+        "deliverable": "MP4 (25fps/60fps interpolation) + GIF + BGM",
+    },
+    {
+        "id": "variations",
+        "label": "设计变体 (Design Variations)",
+        "description": "3+ side-by-side · Tweaks 实时调参 · 跨维度探索",
+        "typical_time": "10 min",
+        "deliverable": "HTML with Tweaks panel",
+    },
+    {
+        "id": "infographic",
+        "label": "信息图 (Infographic / Data Viz)",
+        "description": "印刷级排版 · 数据驱动 · PDF/PNG/SVG 导出",
+        "typical_time": "10 min",
+        "deliverable": "HTML + PDF/PNG/SVG exports",
+    },
+    {
+        "id": "direction",
+        "label": "设计方向顾问 (Design Direction Advisor)",
+        "description": "5流派×20种设计哲学 · 推荐3个差异化方向 · 并行生成Demo",
+        "typical_time": "5 min",
+        "deliverable": "3 parallel visual demos",
+    },
+    {
+        "id": "critique",
+        "label": "专家评审 (5-Dimension Critique)",
+        "description": "哲学一致性/视觉层级/细节执行/功能性/创新性 · 雷达图+修复清单",
+        "typical_time": "3 min",
+        "deliverable": "Radar chart + Keep/Fix/Quick Wins",
+    },
+]
+
+_HUASHU_DESIGN_STYLES = [
+    # 信息建筑派
+    {"school": "信息建筑派", "philosophies": [
+        {"name": "Pentagram - Michael Bierut", "keywords": "瑞士网格·字体即语言·黑白+品牌色"},
+        {"name": "Stamen Design", "keywords": "数据诗学·算法有机图形·温暖色调"},
+        {"name": "Information Architects", "keywords": "内容优先·系统字体·零装饰"},
+        {"name": "Fathom", "keywords": "科学叙事·定量可视化·冷静专业"},
+    ]},
+    # 运动诗学派
+    {"school": "运动诗学派", "philosophies": [
+        {"name": "Locomotive", "keywords": "滚动叙事·视差·电影化分镜"},
+        {"name": "Active Theory", "keywords": "WebGL·3D粒子·霓虹深空"},
+        {"name": "Field.io", "keywords": "算法美学·生成艺术·抽象几何"},
+        {"name": "Resn", "keywords": "叙事交互·游戏化·插画+代码"},
+    ]},
+    # 极简主义派
+    {"school": "极简主义派", "philosophies": [
+        {"name": "Experimental Jetset", "keywords": "概念极简·蒙德里安色系·字体即图形"},
+        {"name": "Müller-Brockmann", "keywords": "瑞士网格纯粹主义·数学精确·无装饰"},
+        {"name": "Build", "keywords": "当代极简品牌·70%留白·精致简单"},
+        {"name": "Sagmeister & Walsh", "keywords": "快乐极简·色彩爆发·手工+数字"},
+    ]},
+    # 实验先锋派
+    {"school": "实验先锋派", "philosophies": [
+        {"name": "Zach Lieberman", "keywords": "代码诗学·手绘感算法·黑白纯粹"},
+        {"name": "Raven Kwok", "keywords": "参数化美学·分形递归·东方算法"},
+        {"name": "Ash Thorp", "keywords": "赛博诗意·电影光影·温暖赛博"},
+        {"name": "Territory Studio", "keywords": "未来UI·全息投影·科幻屏幕"},
+    ]},
+    # 东方哲学派
+    {"school": "东方哲学派", "philosophies": [
+        {"name": "Takram", "keywords": "日式思辨·柔和科技·谦逊精致"},
+        {"name": "Kenya Hara", "keywords": "空的设计·80%留白·白色层次"},
+        {"name": "Irma Boom", "keywords": "书籍建筑师·非线性信息·意外色彩"},
+        {"name": "Neo Shen", "keywords": "新中式·传统现代表达·克制丰富"},
+    ]},
+]
+
+
+def cmd_visual(args: argparse.Namespace) -> None:
+    """Create a visual design session using huashu-design skill."""
+    self_dir = Path(__file__).resolve().parent.parent
+    huashu_dir = self_dir / "skills" / "huashu-design"
+    skill_md = huashu_dir / "SKILL.md"
+
+    if not skill_md.exists():
+        print(json.dumps({
+            "ok": False,
+            "error": "huashu-design skill not found at %s" % huashu_dir,
+            "hint": "Run: git submodule update --init skills/huashu-design",
+        }, ensure_ascii=False, indent=2), file=sys.stderr)
+        raise SystemExit(1)
+
+    sid = args.session_id or session_id()
+    session_dir = Path(args.output) / sid
+    session_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest = {
+        "session_id": sid,
+        "type": "visual_design",
+        "engine": "huashu-design",
+        "engine_path": str(huashu_dir),
+        "skill_path": str(skill_md),
+        "created_at": now_iso(),
+        "goal": args.goal,
+        "context": args.context or "",
+        "capability": args.capability or "prototype",
+        "style_reference": args.style or "",
+        "status": "init",
+    }
+    write_json(session_dir / "manifest.json", manifest)
+
+    # Build output
+    output = {
+        "ok": True,
+        "session_id": sid,
+        "session_dir": str(session_dir),
+        "goal": args.goal,
+        "engine": "huashu-design",
+        "capability": args.capability,
+        "status": "init",
+    }
+
+    if args.list_capabilities:
+        output["capabilities"] = _HUASHU_CAPABILITIES
+
+    if args.list_styles:
+        output["design_styles"] = _HUASHU_DESIGN_STYLES
+
+    if args.print_brief:
+        # Generate structured brief for huashu-design
+        cap_info = {}
+        for c in _HUASHU_CAPABILITIES:
+            if c["id"] == (args.capability or "prototype"):
+                cap_info = c
+                break
+
+        brief = [
+            "## Visual Design Brief",
+            "",
+            "Use huashu-design (skills/huashu-design/SKILL.md) to execute this design.",
+            "",
+            "### Goal",
+            "",
+            args.goal,
+            "",
+            "### Capability",
+            "",
+            "- Type: %s" % cap_info.get("label", args.capability or "prototype"),
+            "- Description: %s" % cap_info.get("description", ""),
+            "- Deliverable: %s" % cap_info.get("deliverable", "HTML"),
+            "- Target time: %s" % cap_info.get("typical_time", ""),
+            "",
+        ]
+
+        if args.context:
+            brief.extend(["### Context", "", args.context, ""])
+
+        if args.style:
+            brief.extend(["### Style Direction", "", args.style, ""])
+
+        brief.extend([
+            "### Workflow (from huashu-design SKILL.md)",
+            "",
+            "1. **Core Asset Protocol**: If a specific brand is involved, collect logo, product images, ",
+            "   UI screenshots, brand colors, and fonts before starting.",
+            "2. **Fact Verification**: WebSearch current facts about the product/brand/topic first.",
+            "3. **Junior Designer**: Start with assumptions + reasoning comments + placeholders, show user, iterate.",
+            "4. **Deliver**: Single-file HTML with inline CSS+JS (React+Babel via esm.sh/shaka).",
+            "5. **Verify**: Playwright click-test for interactive prototypes.",
+            "6. **Export**: MP4/GIF for animations, PDF for infographics, PPTX for slides.",
+            "",
+            "### References",
+            "",
+            "- Skill: skills/huashu-design/SKILL.md",
+            "- Design context: skills/huashu-design/references/design-context.md",
+            "- Design styles: skills/huashu-design/references/design-styles.md",
+            "- Critique guide: skills/huashu-design/references/critique-guide.md",
+            "- Workflow: skills/huashu-design/references/workflow.md",
+        ])
+
+        output["design_brief"] = "\n".join(brief)
+
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -886,6 +1088,24 @@ def main() -> None:
     p.add_argument("--criteria", nargs="*", help="Acceptance criteria")
     p.add_argument("--include-review", action="store_true", help="Include review verdict in status")
     p.set_defaults(func=cmd_finalize)
+
+    # visual (huashu-design)
+    p = sub.add_parser("visual", help="Visual/UI design via huashu-design (built-in skill)")
+    p.add_argument("--goal", required=True, help="What to design")
+    p.add_argument("--capability", choices=[c["id"] for c in _HUASHU_CAPABILITIES],
+                   default="prototype",
+                   help="Design capability to use (default: prototype)")
+    p.add_argument("--style", help="Style reference (e.g. 'Pentagram minimalist' or a school name)")
+    p.add_argument("--context", help="Design context / reference info")
+    p.add_argument("--output", default=".hcw/sessions", help="Output directory")
+    p.add_argument("--session-id", help="Override session ID")
+    p.add_argument("--list-capabilities", action="store_true",
+                   help="List available visual design capabilities")
+    p.add_argument("--list-styles", action="store_true",
+                   help="List available design philosophy styles")
+    p.add_argument("--print-brief", action="store_true",
+                   help="Print a structured design brief for the agent")
+    p.set_defaults(func=cmd_visual)
 
     args = parser.parse_args()
 

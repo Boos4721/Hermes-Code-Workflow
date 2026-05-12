@@ -72,3 +72,62 @@ python3 scripts/hcw_design.py review \
 | 可扩展性 | 20% | 新增功能的难度和影响范围 |
 | 可维护性 | 20% | 错误处理、日志、调试难度 |
 | 可测试性 | 15% | Mock 难度、依赖隔离程度 |
+
+---
+
+## 视觉设计（基于 huashu-design）
+
+`hcw_design.py visual` 把内置的 **花叔 Design** 集成到 HCW，用于 UI/UX 原型、
+动画、幻灯片、信息图等视觉设计。
+
+```bash
+# 查看可用的设计能力
+python3 scripts/hcw_design.py visual --list-capabilities --goal x
+
+# 查看 5 流派 × 20 种设计哲学
+python3 scripts/hcw_design.py visual --list-styles --goal x
+
+# 创建视觉设计 session 并打印完整 brief
+python3 scripts/hcw_design.py visual \
+  --goal "做一个跑步记录 App 原型, 5 屏, iOS" \
+  --capability prototype \
+  --style "Kenya Hara 空的设计" \
+  --print-brief
+
+# 生成产品 pitch deck
+python3 scripts/hcw_design.py visual \
+  --goal "10页 AI 工具创业 pitch deck" \
+  --capability slides
+
+# 动画 / motion design
+python3 scripts/hcw_design.py visual \
+  --goal "30秒神经网络工作原理 HTML 动画" \
+  --capability animation
+```
+
+**支持的设计能力**：
+
+| 能力 | 交付物 | 时间 |
+|------|--------|------|
+| `prototype` | 可交互 HTML 原型 | 10-15 min |
+| `slides` | HTML deck + PPTX | 15-25 min |
+| `animation` | MP4 + GIF + BGM | 8-12 min |
+| `variations` | 并排对比 + Tweaks | 10 min |
+| `infographic` | 印刷级 PDF/PNG/SVG | 10 min |
+| `direction` | 3 个并行设计方向 | 5 min |
+| `critique` | 5 维雷达图评审 | 3 min |
+
+**设计哲学流派**：
+
+| 流派 | 代表 |
+|------|------|
+| 信息建筑派 | Pentagram, Stamen, iA, Fathom |
+| 运动诗学派 | Locomotive, Active Theory, Field.io, Resn |
+| 极简主义派 | Experimental Jetset, Müller-Brockmann, Build, Sagmeister |
+| 实验先锋派 | Zach Lieberman, Raven Kwok, Ash Thorp, Territory |
+| 东方哲学派 | Takram, Kenya Hara, Irma Boom, Neo Shen |
+
+**Skill 位置**：`skills/huashu-design/SKILL.md`，clone 命令：
+```bash
+git submodule update --init skills/huashu-design
+```

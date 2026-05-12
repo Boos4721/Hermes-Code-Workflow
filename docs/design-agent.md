@@ -88,3 +88,62 @@ python3 scripts/hcw_design.py review \
 - `hcw_session.py` — design session feeds into implementation session
 - `hcw_summarize.py` — design artifacts appear in final report
 - `hcw_update.py` — syncs design script + template from GitHub
+
+---
+
+## Visual Design (via huashu-design)
+
+`hcw_design.py visual` bridges HCW with the built-in **huashu-design** skill for
+UI/UX, animation, slide, and infographic design.
+
+```bash
+# List available capabilities
+python3 scripts/hcw_design.py visual --list-capabilities --goal x
+
+# List available design philosophy styles (5 schools × 20 philosophies)
+python3 scripts/hcw_design.py visual --list-styles --goal x
+
+# Create a visual design session with a structured brief
+python3 scripts/hcw_design.py visual \
+  --goal "做一个跑步记录 App 原型, 5 屏, iOS" \
+  --capability prototype \
+  --style "Kenya Hara 空的设计" \
+  --print-brief
+
+# Generate slides
+python3 scripts/hcw_design.py visual \
+  --goal "10页产品 pitch deck" \
+  --capability slides
+
+# Animation / motion design
+python3 scripts/hcw_design.py visual \
+  --goal "30秒神经网络的 HTML 动画" \
+  --capability animation
+```
+
+**Supported capabilities**:
+
+| Capability | Deliverable | Time |
+|------------|-------------|------|
+| `prototype` | Interactive HTML prototype | 10-15 min |
+| `slides` | HTML deck + editable PPTX | 15-25 min |
+| `animation` | MP4 + GIF + BGM | 8-12 min |
+| `variations` | Side-by-side with Tweaks | 10 min |
+| `infographic` | Print-quality PDF/PNG/SVG | 10 min |
+| `direction` | 3 parallel design directions | 5 min |
+| `critique` | 5-dimension radar chart | 3 min |
+
+**Design philosophy schools** (from huashu-design):
+
+| School | Example philosophies |
+|--------|-------------------|
+| 信息建筑派 | Pentagram, Stamen, iA, Fathom |
+| 运动诗学派 | Locomotive, Active Theory, Field.io, Resn |
+| 极简主义派 | Experimental Jetset, Müller-Brockmann, Build, Sagmeister |
+| 实验先锋派 | Zach Lieberman, Raven Kwok, Ash Thorp, Territory |
+| 东方哲学派 | Takram, Kenya Hara, Irma Boom, Neo Shen |
+
+**Skill location**: `skills/huashu-design/SKILL.md` — clone with:
+```bash
+git submodule update --init skills/huashu-design
+```
