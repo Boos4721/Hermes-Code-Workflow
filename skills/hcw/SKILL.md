@@ -1,7 +1,7 @@
 ---
 name: hcw
 description: "Use when coordinating coding work through Hermes Code Workflow: brainstorm designs, classify intent, route work to Claude Code, Codex, OpenCode, Gemini, or Agent Client Protocol workers, run Python adapters when useful, verify outputs with evidence, and iterate before reporting."
-version: 0.3.0
+version: 0.4.0
 author: Boos4721 + Hermes
 license: MIT
 metadata:
@@ -12,7 +12,15 @@ metadata:
 
 # Hermes Code Workflow
 
-## Overview
+## Related House Workflows
+
+### CCW as historical sibling
+A narrower sibling once focused on Claude-Code-centric workflow patterns. Treat that material as part of the broader Hermes Code Workflow class rather than a separate discoverability target. If you encounter a `ccw` artifact in the user-local skill tree, absorb any unique heuristics into this section or a support file and archive the narrow sibling.
+
+### Multi-agent workflow notes
+Use this umbrella alongside `multi-agent-dev-workflow` / `subagent-driven-development` style support material when the task is specifically about delegation topology or review stages, but keep the main discoverability surface here at the class level.
+
+##
 
 Hermes Code Workflow is the house workflow for software development with Hermes as the control plane. It adapts the strongest ideas from Claude Code Workflow, Everything Claude Code, and Superpowers while staying native to Hermes: tool calls, skills, persistent memory, session search, cron jobs, delegation, terminal/process management, and Python helper adapters.
 
@@ -46,6 +54,8 @@ Do not use Hermes Code Workflow as a substitute for explicit user approval on ri
 - defines goals and final preferences
 - approves high-risk changes and publishing decisions
 - can override this workflow at any time
+
+**⚠️ Publishing rule (user correction):** NEVER auto-publish content (articles, posts, social media) without explicit user confirmation. Always preview first, wait for "发"/"ok"/"publish", then publish to draft — not directly to production. User has been burned by auto-publishing resulting in published content that couldn't be easily modified.
 
 ### Hermes
 
@@ -92,9 +102,9 @@ If any condition fails, brainstorm is mandatory.
 
 ### Brainstorm process
 
-1. **Explore project context** — check files, docs, recent commits, existing patterns
+1. **Explore project context** — check files, docs, recent commits, existing patterns. For deeper context, see [huashu methodology: deep context gathering](references/huashu-methodology.md#pattern-1-deep-context-gathering) — scan for exact config values, architecture markers, entry points, and dependency descriptors.
 2. **Ask clarifying questions** — one at a time, prefer multiple choice, understand purpose/constraints/success criteria
-3. **Propose 2-3 approaches** — with trade-offs and your recommendation
+3. **Propose 2-3 approaches** — with trade-offs and your recommendation. Use [huashu methodology: variations by dimension](references/huashu-methodology.md#pattern-3-variations-by-dimension) to ensure each approach explores a distinct architectural axis, not just cosmetic differences.
 4. **Present design** — sections scaled to complexity, get approval after each section
 5. **Write design doc** — save to `.hcw/sessions/<session-id>/design.md`
 6. **Spec self-review** — check for placeholders, contradictions, ambiguity, scope
@@ -144,6 +154,68 @@ When escalating, include: the original goal, each failure type encountered, what
   design.md          # approved design spec
   plan.md            # implementation plan (after brainstorm)
 ```
+
+### Automation: Design Agent script
+
+For projects that include HCW's `scripts/` directory, use `hcw_design.py` to automate the design phase.
+The script implements patterns from [huashu-design methodology](references/huashu-methodology.md):
+deep context scanning, variations by architectural dimension, Junior Designer assumptions,
+structured 5-dimension critique with Quick Wins.
+
+```bash
+# 1. Create design session with goal + constraints
+python3 scripts/hcw_design.py init \
+  --goal "Add rate limiting to gateway" \
+  --constraints "Must use Redis" "Must not add latency"
+
+# 2. Scan codebase for structure, languages, entry points
+python3 scripts/hcw_design.py explore --dir . --session .hcw/sessions/<id>
+
+# 3. Generate 2-3 design proposals with trade-off stubs
+python3 scripts/hcw_design.py propose \
+  --goal "Add rate limiting" --approaches 2 --session .hcw/sessions/<id>
+
+# 4. Produce final design.md from artifacts
+python3 scripts/hcw_design.py finalize \
+  --session .hcw/sessions/<id> \
+  --scope "gateway/middleware/ratelimit.py" \
+  --criteria "pytest tests/test_ratelimit.py"
+
+# 5. Review design.md for completeness (8 checks)
+python3 scripts/hcw_design.py review --design .hcw/sessions/<id>/design.md
+```
+
+Also see `templates/design.template.md` for a standalone design-document template.
+
+### Visual Design: huashu-design integration
+
+When the task is UI/UX prototype, slide deck, animation, infographic, or design critique,
+the submodule at `skills/huashu-design/` provides a complete visual design skill.
+Use `hcw_design.py visual` to create structured briefs:
+
+```bash
+# List 7 available capabilities
+python3 scripts/hcw_design.py visual --list-capabilities --goal x
+
+# List 5 schools × 20 design philosophies
+python3 scripts/hcw_design.py visual --list-styles --goal x
+
+# Create session + print agent-ready brief
+python3 scripts/hcw_design.py visual \
+  --goal "跑步记录 App 原型, 5 屏, iOS" \
+  --capability prototype \
+  --style "Kenya Hara" \
+  --print-brief
+```
+
+Capabilities: `prototype` (interactive HTML), `slides` (HTML deck + PPTX),
+`animation` (MP4 + GIF + BGM), `variations` (side-by-side + Tweaks),
+`infographic` (PDF/PNG/SVG), `direction` (3 parallel direction demos),
+`critique` (5-dim radar chart with quick wins).
+
+Requirements: `git submodule update --init skills/huashu-design` to clone the submodule.
+Methodology patterns (deep context, Junior Designer, 5-dim critique) documented in
+`references/huashu-methodology.md`.
 
 ## Intent Classification
 
@@ -244,6 +316,7 @@ Hermes Code Workflow may include Python helper scripts to bridge Hermes with Age
 
 Use Python adapters for:
 
+- **Model dispatch** — calling a specific model (e.g. gpt-5.5) when the session model is wrong. See `references/model-dispatch-python-adapter.md` for the full recipe.
 - normalizing worker outputs into JavaScript Object Notation
 - launching software development kit-backed agents with stable options
 - adding timeout/retry/redaction around command-line interfaces
@@ -260,10 +333,30 @@ scripts/
   hcw_dispatch.py      # run one worker from a JSON brief
   hcw_verify.py        # run configured validation checks and emit JSON evidence
   hcw_session.py       # create/read/update Hermes Code Workflow session artifacts
+  hcw_design.py        # automated design phase: explore, propose, review, finalize
   hcw_summarize.py     # summarize artifacts for final report
 ```
 
-See `references/python-adapters.md` for detailed scaffolding, structured data schemas, and implementation patterns. *(Planned — file not yet written.)*
+See `references/model-dispatch-python-adapter.md` for the model-dispatch adapter pattern (calling a specific model when the session model is wrong). See `references/huashu-methodology.md` for scaffolded design-agent adapters.
+
+### Dispatching to a specific model via Python adapter
+
+When Hermes is running on model X but the task explicitly requires model Y (user preference, special capability, cost constraint), use a Python adapter to call the target model's API directly — do not use the session's model as a fallback.
+
+**When to use this pattern:**
+- The user says "用 <model>" and that model differs from the session model
+- Worker CLIs (Codex, Claude Code, OpenCode) don't support the target API endpoint
+- The task is prompt-based (document rewrite, analysis, generation) — not code execution
+- You've been corrected for using the wrong model earlier in the session
+
+**Procedure:**
+1. Discover available models via `GET /v1/models` with the user's API key
+2. Test with a minimal prompt before the full task (saves minutes on bad model names)
+3. Write a Python adapter using stdlib `urllib` (no pip needed) — see `references/model-dispatch-python-adapter.md` for a complete recipe
+4. Run via `execute_code` (clean, isolated, no side effects)
+5. Verify output quality before claiming completion
+
+**Key constraint:** The adapter is for prompt-based LLM work. For code-heavy tasks (builds, tests, multi-file changes), use existing worker CLIs. If no CLI supports the required model, decompose the task: use Hermes for prompts and CLI workers for code.
 
 ## Default Routing
 
@@ -274,6 +367,29 @@ Unless the user explicitly chooses a worker:
 3. **Second opinion / review:** route to Codex or OpenCode.
 4. **Provider fallback:** if one worker fails due to quota/provider/runtime issues, switch worker and preserve artifacts.
 5. **Final acceptance:** Hermes verifies directly.
+
+### Greenfield project bootstrap under HCW
+
+When the user asks to create a brand-new project from an existing upstream implementation or reference repo, treat it as a **plan-execute chain with mandatory brainstorm** even if the end goal sounds straightforward.
+
+Required sequence:
+
+1. Inspect the upstream/reference repo directly with tools before proposing architecture.
+2. Create the target project directory immediately when the user has already named it and there is no destructive ambiguity.
+3. Save a concrete implementation plan under the new project's local planning path, for example `docs/plans/...`.
+4. Prefer a **first-pass parity port** before cleanup when the user explicitly wants a reimplementation of an existing tool. Preserve behavior first; refactor second.
+5. Be explicit about the verification boundary. For exploit, privilege, kernel, or destructive tooling, distinguish:
+   - build/test verification you can safely run now
+   - live runtime validation you are intentionally not executing
+6. If subagents are used in parallel on the same new repo, reconcile their outputs against the actual working tree before reporting status. Do not trust a subagent summary that says the repo is still scaffold-only once local file inspection shows implementation landed.
+
+Recommended user-choice frame when the target is a port/rewrite:
+- A: 1:1 behavior-first port
+- B: idiomatic rewrite with behavior parity
+- C: minimal single-arch/single-mode starter
+- D: 1:1 first, then refactor
+
+Default recommendation: **D** when the user wants an HCW-style implementation of an existing upstream tool and future cleanup is acceptable.
 
 ## Chain Selection Decision Aid
 
@@ -485,7 +601,79 @@ For substantial work, maintain artifacts under a local, gitignored path unless t
       final-report.md     # summary for human
 ```
 
+### Design session artifacts (when using hcw_design.py)
+
+When the design phase runs before implementation, it produces its own session tree that feeds into the implementation session above:
+
+```text
+.hcw/sessions/DSN-YYYYMMDD-HHMMSS/
+  manifest.json       # goal, context, constraints, status
+  events.jsonl        # design event log
+  exploration/
+    codebase.json     # codebase scan: structure, languages, entry points
+  proposals.json      # 2-3 design approaches with trade-offs
+  review.json         # review verdict and check results
+  design.md           # final design document
+```
+
 If a project already has an established planning/session directory, use that instead. Do not commit Hermes Code Workflow artifacts unless the user asks.
+
+## Agent Development Brief (multi-phase, agent-to-agent handoff)
+
+For large-scale rewrites, ports, or greenfield builds that span multiple phases and will be handed to another agent for execution, use **Agent Development Brief** format — not the standard Dispatch Brief.
+
+### When to use
+
+- Full-stack rewrite (e.g., Node.js → Go backend)
+- Multi-month refactoring projects
+- Any task the user says "给agent去开发" or explicitly wants a self-contained document for another agent
+- Projects requiring from-scratch setup instructions
+
+### Format differences from standard brief
+
+| Dimension | Standard Brief | Agent Development Brief |
+|-----------|---------------|------------------------|
+| Audience | Subagent in this session | Another agent instance (fresh context) |
+| Scope | Single task/phase | Full project, multiple phases |
+| Language | User's language (e.g., Chinese) | **English** (user preference: "最好硬英语") |
+| Setup | Assumes repo is ready | **From-scratch bootstrap** (clone, build, verify) |
+| Detail | Minimal context (goal + files + checks) | Full architecture, interface specs, code templates |
+| Tasks | One dispatch unit | Phase-by-phase with 10-60+ tasks |
+| Tests | Mentioned as checks | Full test templates with httptest/mock examples |
+| Docs | Not included | Documentation requirements per task |
+
+### Required sections
+
+1. **Getting Started (from scratch)** — clone, checkout, build, smoke test, dev loop
+2. **Architecture** — ascii/mermaid diagram + directory layout with every file's purpose
+3. **Golden Rules** — hard constraints the agent must follow
+4. **Phases** — each phase has:
+   - Task list with file paths, Go interface signatures, code templates
+   - Provider/API priority matrix
+   - Testing requirements with examples
+5. **Documentation requirements** — GoDoc, API comments, user-facing docs per task
+6. **Build & Run** — compile, test, vet, docker commands
+7. **Pre-commit checklist** — vet, test, format, secrets scan
+
+### Example
+
+The Go backend rewrite plan at `plan/go-backend-rewrite.md` in the BoosAPI repo demonstrates this format. It includes:
+- Bootstrap steps (clone → build → curl healthz)
+- 60+ tasks across 5 phases with Go interface signatures
+- Provider priority matrix
+- httptest test templates
+- Documentation requirements per task
+- Pre-commit checklist
+- All in English
+
+### User preference embed
+
+When the user says "合并成一个文档", "写好提示词", or "给agent去开发":
+- Merge all separate plan docs into ONE English markdown file
+- Include from-scratch bootstrap steps (clone, install deps, build, smoke test)
+- Lead with Golden Rules the agent must follow
+- Keep task descriptions concrete (file paths, function signatures, expected output)
+- Save as `plan/<descriptive-name>.md` and commit if the user wants it tracked
 
 ## Dispatch Brief Template
 
@@ -845,9 +1033,15 @@ After difficult or repeated work:
 - Patch stale skills immediately when a loaded skill is wrong or incomplete.
 - Keep Hermes Code Workflow itself generic; put project-specific conventions in project docs or separate skills.
 
+Project integration patterns (BoosAPI route registration, ComfyUI reverse proxy, Gitea CI/CD, notification service, AI video agent architecture, internal rename, SSE agent pattern, and agent development briefs) are documented in:
+- `references/metapi-integration.md` — BoosAPI-specific patterns
+- `references/agent-development-brief.md` — agent-to-agent handoff brief format
+- `references/model-dispatch-python-adapter.md` — dispatching to a specific LLM model via Python adapter when the session model doesn't match the task requirement
+
 ## Common Pitfalls
 
 1. **Letting a worker self-certify.** Worker success is input to verification, not proof.
+1b. **Forgetting bilingual docs (zh-CN).** When the user's project maintains `en/zh-CN` doc pairs (README.md + README.zh-CN.md, docs/*.md + docs/*.zh-CN.md), updating only the English variant is an incomplete change. Always mirror the update to the Chinese counterpart in the same commit. This applies to `Hermes-Code-Workflow` and any project that follows the same pattern.
 2. **Skipping context discovery.** Always inspect enough repo state to avoid wrong assumptions.
 3. **Skipping brainstorm phase.** "Simple" projects are where unexamined assumptions cause the most wasted work.
 4. **Over-orchestrating tiny tasks.** Use the quick chain when the scope is small.
@@ -857,8 +1051,98 @@ After difficult or repeated work:
 8. **Treating Agent Client Protocol/software development kit/command-line interface as equivalent.** Pick the transport based on reliability, observability, and official support.
 9. **Trusting agent success reports.** Always verify independently.
 10. **Starting code quality review before spec compliance passes.** Wrong order — spec first, quality second.
+11. **Don't delete apparently-unused files without understanding context.** A file that isn't imported anywhere may still be valuable (Web3 providers, app-wide wrappers, layout components). Before removing, check:
+    - Is the file part of a pattern (e.g. providers → layout → app)?
+    - Does it export something that could be used dynamically or via config?
+    - If unsure, ask the user — do not assume "unused = safe to delete."
+    - When you do get corrected, restore the file AND its deps, then build.
 
-## Verification Checklist
+12. **Leaking real IPs, names, or credentials in test data.** Never use real IP addresses, hostnames, usernames, or other sensitive identifiers in test code, examples, or YAML configs committed to git. Use placeholder values (10.0.0.x, node-a/node-b, example.com, test-user). If sensitive data was committed:
+   - **Single recent commit**: `git commit --amend && git push --force-with-lease`
+   - **Multiple commits / full history cleanup**: `git checkout --orphan clean-branch && git add -A && git commit -m "..." && git branch -D main && git branch -m clean-branch main && git push -f origin main` — this creates a single clean commit with no history
+    - **Single commit:** `git commit --amend && git push --force-with-lease`
+    - **Multiple commits (full history wipe preferred):** `git checkout --orphan clean-branch && git add -A && git commit -m "..." && git branch -D main && git branch -m clean-branch main && git push -f origin main`
+    - A new commit on top still exposes the old data in git history — force push is required.
+
+13. **Confusing agent-local plans with team-facing plans.** In projects with a dual-plan convention (e.g. BoosAPI/metapi):
+    - `docs/plans/` (gitignored) = agent/developer pre-implementation design, spec, decomposition.
+    - `plan/` (committed) = team-facing session summaries, decisions, outcomes — Chinese markdown.
+    - When the user says "写进plan", look for a top-level `plan/` directory. When they say "规划" or "设计文档", use `docs/plans/` or `.hcw/sessions/`.
+    - If unsure which to use, ask — mixing them up wastes time.
+
+14. **Using the wrong model for HCW tasks.** When Hermes is running on model X but the user's workflow requires model Y, dispatching or executing work with model X is a workflow error — expect a correction. Before dispatching any worker or doing Hermes-native execution, check whether the session model matches the user's expected model for this task. If it doesn't match:
+    - Use a Python adapter to call the target model's API directly (see `references/model-dispatch-python-adapter.md`)
+    - Do not ask "should I switch models" — figure it out from context or user preference
+    - Check User-specific workflow notes below for this user's model preference
+    - **Live example of this failure:** user said "等等 怎么是用deepseek-v4写的啊" after HCW dispatched work with the wrong session default instead of gpt-5.5. This is a first-class correction signal — update HCW's model handling if it happens more than once.
+
+## User-specific workflow notes
+
+### Gitea-only project infrastructure
+
+This project runs entirely on self-hosted **Gitea** at `git.boos.lat`. All documentation, plan files, code module paths, Go import paths, and repository URLs must reference the Gitea instance only — never GitHub. When the user says "不要出现github的 只用我们自己的gitea", that means:
+- `go.mod` module path: `git.boos.lat/boos/boosapi` (not `github.com/...`)
+- All Git remotes: `git.boos.lat/...`
+- All documentation URLs: `git.boos.lat/...` or `boosapi.cita777.me`
+- Docker images: `1467078763/boosapi` (if on a registry), not `github/...`
+- Remove GitHub badges, links, and references from any doc files
+
+### User prefers ultra-brief communication
+用户（Boos4721）沟通极端简洁，通常只给几个字（"头脑风暴"、"2 4 主要是4"、"继续弄"）。不需要完整句子解释、也不需要确认性提问。精简所有输出：
+- 分析结果直接列要点，不要铺垫
+- 选项用编号 1/2/3 而非段落
+- 不清楚时先做判断再问，不要把问题抛回去
+- 修完直接报结果，不要问"这样可以吗"
+
+### Model preference: gpt-5.5 for HCW tasks
+
+This user expects **gpt-5.5** (via `api.boos.lat/v1`, key `sk-boos4721`) for any development/documentation work dispatched through HCW. If the session model is gpt-5.5, dispatch workers directly. If it is something else (e.g. deepseek-v4-flash, any other default), use the Python adapter pattern (`references/model-dispatch-python-adapter.md`) to call gpt-5.5 directly — do not use the session's model for HCW tasks.
+
+**Live example from this user's sessions:** User said "等等 怎么是用deepseek-v4写的啊" after HCW dispatched work using the session default model instead of gpt-5.5. The fix was a Python adapter calling gpt-5.5 directly via the OpenAI-compatible API at `api.boos.lat/v1`.
+
+### Scope discipline: "全部写完" means ALL items in the plan
+
+When the user says "全部写完" (write all of them), "全部", or references a plan with an expectation of full implementation, implement EVERY outstanding item listed in the plan — do not pick a subset. This user's communication is ultra-brief; if they reference a plan's remaining items list and say "全部写完", they mean implement every uncompleted item, not just the first one or the easiest ones. If the scope is too large for a single session, mention the total items and ask "一个一个来还是全部?" rather than silently choosing a subset.
+
+### High-risk local exploit validation on real hosts
+
+When the user asks to validate a local exploit or privilege-escalation proof of concept on the current machine, do not stop at build success or theoretical analysis. If the user explicitly requests a live test, Hermes should:
+
+1. perform prerequisite environment discovery first:
+   - identify the target binary path and whether it is a symlink
+   - inspect the live file permissions and readability as the intended unprivileged user
+   - check whether the implementation's file-open strategy matches the real target layout
+2. create a dedicated unprivileged demo user when safe and appropriate for local testing
+3. run the binary as that demo user and collect real evidence
+4. if it fails, use `strace` or equivalent syscall tracing to locate the exact failing syscall before proposing fixes
+5. report clearly whether the failure is:
+   - an implementation bug
+   - an environment incompatibility
+   - or a target precondition mismatch
+
+Important pitfall discovered in practice:
+- On Alpine/BusyBox-style systems, `/bin/su` may be a symlink to `/bin/bbsuid` with mode `4111` (`---s--x--x`), which means an unprivileged user can execute it but cannot open it read-only.
+- A copy-fail style implementation that assumes `File::open("/bin/su")` or equivalent `O_RDONLY` access will fail early with `EACCES` before reaching the AF_ALG / `splice` overwrite path.
+- In that environment, the right next step is to compare with the reference implementation and/or add explicit preflight checks for target readability and target-path compatibility instead of claiming the exploit path itself failed.
+
+Verification pattern to preserve:
+- build the candidate binary
+- create a dedicated demo user
+- execute the binary as that user against the live target
+- if failure occurs, capture the exact syscall transcript showing the failure point
+- include the target file mode, symlink resolution, and the failing syscall in the final report
+
+
+### Gemini dispatch with prompt review
+
+When dispatching Gemini (gemini CLI = Claude Code) for BoosAPI coding tasks:
+
+1. **Prompt must be reviewed.** Before launching Gemini, present the prompt text to the user for approval. Wait for explicit go-ahead before running.
+2. **Use pty mode.** Always launch Gemini with `pty=true` and `background=true` — the CLI requires a pseudo-terminal.
+3. **Alpine quirk.** Gemini's `run_shell_command` tool is not available on Alpine Linux. If it gets stuck on that error, kill the process and do the remaining fixes manually.
+4. **Prompt style.** Keep prompts concise (bullet points), list exact files to modify, and include acceptance checks (e.g. `cargo check`). Gemini has already explored the project structure, so no need to re-explain the full codebase.
+5. **Monitor progress.** After dispatching, use `process(action='wait')` or `process(action='poll')` to track progress. Gemini runs can take 2-10 minutes.
+6. **Verify after completion.** Always run `cargo check` / `npx tsc --noEmit` after Gemini finishes. Fix any compilation errors it introduced.
 
 ### Pre-dispatch (before sending the brief)
 
